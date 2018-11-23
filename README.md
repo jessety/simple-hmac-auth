@@ -12,7 +12,7 @@ When implemented, all HTTP requests are validated against a list of API keys and
 const express = require('express');
 const app = express();
 
-const EasySign = require('express-easy-signing');
+const { EasySign } = require('express-easy-signing');
 const auth = new EasySign();
 
 app.use(auth.middleware());
@@ -62,6 +62,96 @@ app.listen(80, () => {
 });
 
 ```
+
+### Client
+
+A client that implements HMAC hashing is also included. To write a client for your service, simply extend the class and add functions that match your API routes. The client functions are written 
+
+```javascript
+
+const { EasySignClient } = require('express-easy-signing');
+
+class SampleClient extends EasySignClient {
+
+  constructor(apiKey, secret, settings) {
+    super(apiKey, secret, settings);
+    
+    self.settings.host = 'api.myservice.com';
+    self.settings.port = 443;
+    self.settings.ssl = true;
+  }
+
+  create(data, callback) {
+    return this.call('POST', '/items/', data, undefined, callback);
+  }
+
+  detail(id, parameters, callback) {
+    return this.call('GET', '/items/' + encodeURIComponent(id), undefined, parameters, callback);
+  }
+
+  query(parameters, callback) {
+    return this.call('GET', '/items/', undefined, parameters, callback);
+  }
+
+  update(id, data, callback) {
+    return this.call('POST', '/items/' + encodeURIComponent(id), data, undefined, callback);
+  }
+
+  delete(id, callback) {
+    return this.call('DELETE', '/items/' + encodeURIComponent(id), undefined, undefined, callback);
+  }
+}
+
+module.exports = SampleClient;
+
+```
+
+Client instantiation
+
+```javascript
+const client = new SampleClient(apiKey, secret);
+```
+
+The client implements both promises and callbacks, so your client may use either.
+
+```javascript
+const query = {
+  string: 'string',
+  boolean: true,
+  number: 42
+};
+
+try {
+
+  const results = await client.query(query);
+  
+  console.log(results);
+
+} catch (error) {
+
+  console.log('Error:', error);
+}
+```
+
+```javascript 
+const query = {
+  string: 'string',
+  boolean: true,
+  number: 42
+};
+
+client.query(query, (error, results) => {
+
+  if (error) {
+    console.log('Error:', error);
+    return;
+  }
+
+  console.log(results);
+});
+
+```
+
 
 ### Explanation
 
