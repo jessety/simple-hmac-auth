@@ -1,9 +1,9 @@
-express-easy-signing
+simple-hmac-auth
 =============
 
-Node request signing middleware for Express designed to make building an HMAC signed API easy.
+Middleware for Express designed to make building an API that uses HMAC signatures simple.
 
-When implemented, all HTTP requests are validated against a list of API keys and secrets on the server.
+When implemented, all incoming HTTP requests are signed and compared to the signature sent by the client.
 
 ### Explanation
 
@@ -85,8 +85,8 @@ headers[authorization] = 'signature ' + signature
 const express = require('express');
 const app = express();
 
-const { EasySign } = require('express-easy-signing');
-const auth = new EasySign();
+const SimpleHMACAuth = require('simple-hmac-auth');
+const auth = new SimpleHMACAuth();
 
 app.use(auth.middleware());
 
@@ -138,13 +138,13 @@ app.listen(80, () => {
 
 ### Client
 
-A client that implements HMAC hashing is also included. To write a client for your service, simply extend the class and add functions that match your API routes.
+A client that implements HMAC signing is also included. To write a client for your service, simply extend the class and add functions that match your API routes.
 
 ```javascript
 
-const { EasySignClient } = require('express-easy-signing');
+const SimpleHMACAuthClient = require('simple-hmac-auth-client');
 
-class SampleClient extends EasySignClient {
+class SampleClient extends SimpleHMACAuthClient {
 
   constructor(apiKey, secret, settings) {
     super(apiKey, secret, settings);
