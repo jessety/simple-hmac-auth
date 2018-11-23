@@ -36,18 +36,18 @@ auth.secretForKey = (apiKey, callback) => {
   });
 };
 
-// Required. Handle critical issues, e.g. there was an issue finding the secret for an API key
-auth.on('error', ({error, request, response, next}) => {
-
-  response.status(500).json({
-    error: error
-  });
-});
-
 // Required. Handle requests that have failed authentication.
 auth.on('rejected', ({error, request, response, next}) => {
 
   response.status(401).json({
+    error: error
+  });
+});
+
+// Required. Handle critical issues, e.g. there was an issue finding the secret for an API key
+auth.on('error', ({error, request, response, next}) => {
+
+  response.status(500).json({
     error: error
   });
 });
