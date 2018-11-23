@@ -65,7 +65,7 @@ app.listen(80, () => {
 
 ### Client
 
-A client that implements HMAC hashing is also included. To write a client for your service, simply extend the class and add functions that match your API routes. The client functions are written 
+A client that implements HMAC hashing is also included. To write a client for your service, simply extend the class and add functions that match your API routes.
 
 ```javascript
 
