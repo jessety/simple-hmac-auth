@@ -1,10 +1,9 @@
 simple-hmac-auth
 =============
 
-Middleware for Express designed to make building an API that uses HMAC signatures simple.
+Node Library designed to make building an API that uses HMAC signatures simple.
 
-When implemented, all incoming HTTP requests are signed and compared to the signature sent by the client.
-
+Includes a server component, Express middleware, and a client.
 
 - [Specification](#specification)
 - Server
@@ -33,7 +32,7 @@ The `date` header is a standard [RFC-822 (updated in RFC-1123)](https://tools.ie
 
 The `authorization` header is a standard as per [RFC-2617](https://tools.ietf.org/html/rfc2617#section-3.2.2) that, confusingly, is designed for authentication and not authorization. It contains a signature of the entire request.
 
-To calculate the signature, the client first needs to create a string representation of the request. When the server recieves an authenticated request it computes the the signature and compares it with the signature provided by the client. Therefore, the client must create a string representation of the request in the exact same way as the platform. This is called "canonicalization."
+To calculate the signature, the client first needs to create a string representation of the request. When the server recieves an authenticated request it computes the the signature and compares it with the signature provided by the client. Therefore, the client must create a string representation of the request in the exact same way as the server. This is called "canonicalization."
 
 The format of a canonical representation of a request is:
 ```
