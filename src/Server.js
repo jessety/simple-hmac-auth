@@ -189,7 +189,7 @@ class SimpleHMACAuth {
         reject({
           message: `Authorization header is improperly formatted: "${request.headers.authorization}"`,
           details: `It should look like: "signature sha256 a42d7b09a929b997aa8e6973bdbd5ca94326cbffc3d06a557d9ed36c6b80d4ff"`,
-          code: `AUTHORIZATION_HEADER_INVALID`,
+          code: `AUTHORIZATION_HEADER_INVALID`
         });
         return;
       }
@@ -203,7 +203,7 @@ class SimpleHMACAuth {
         reject({
           message: `Authorization header is improperly formatted: "${request.headers.authorization}"`,
           details: `It should look like: "signature hmac-sha256 a42d7b09a929b997aa8e6973bdbd5ca94326cbffc3d06a557d9ed36c6b80d4ff"`,
-          code: `AUTHORIZATION_HEADER_INVALID`,
+          code: `AUTHORIZATION_HEADER_INVALID`
         });
         return;
       }
@@ -212,7 +212,7 @@ class SimpleHMACAuth {
 
         reject({
           message: `Authorization header send invalid algorithm: "${algorithm}". The only supported hmac algorithms are: "${algorithms.join('", "')}"`,
-          code: `HMAC_ALGORITHM_INVALID`,
+          code: `HMAC_ALGORITHM_INVALID`
         });
         return;
       }
@@ -331,7 +331,7 @@ class SimpleHMACAuth {
 
         reject({
           message: `Internal failure while attempting to locate secret for API key "${apiKey}": secretForKey has timed out after ${(this.settings.secretForKeyTimeout / 1000)} seconds`,
-          code: `INTERNAL_ERROR_SECRET_TIMEOUT`,
+          code: `INTERNAL_ERROR_SECRET_TIMEOUT`
         });
 
       }, this.settings.secretForKeyTimeout);

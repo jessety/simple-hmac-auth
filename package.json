@@ -4,6 +4,7 @@
   "description": "An easy way to add request signatures to an HTTP server",
   "main": "index.js",
   "scripts": {
+    "lint": "node ./node_modules/eslint/bin/eslint.js .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,5 +19,8 @@
   "homepage": "https://github.com/jessety/simple-hmac-auth#readme",
   "dependencies": {
     "body-parser": "^1.18.3"
+  },
+  "devDependencies": {
+    "eslint": "^5.9.0"
   }
 }

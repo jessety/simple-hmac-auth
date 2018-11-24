@@ -16,7 +16,7 @@ const settings = {
   secretsForAPIKeys: {
     'API_KEY': 'SECRET',
     'API_KEY_TWO': 'SECRET_TWO',
-    'API_KEY_THREE': 'SECRET_THREE',
+    'API_KEY_THREE': 'SECRET_THREE'
   }
 };
 

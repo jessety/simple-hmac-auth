@@ -259,7 +259,7 @@ class Client {
 
           fail({
             message: `Configured using invalid hmac algorithm: "${algorithm}". The only supported hmac algorithms are: "${algorithms.join('", "')}"`,
-            code: `HMAC_ALGORITHM_INVALID`,
+            code: `HMAC_ALGORITHM_INVALID`
           });
           return;
         }
