@@ -8,7 +8,9 @@
 const Client = require('./src/Client');
 const Server = require('./src/Server');
 
+const middleware = require('./src/middleware');
+
 const canonicalize = require('./src/canonicalize');
 const { sign, algorithms } = require('./src/sign');
 
-module.exports = { Client, Server, canonicalize, sign, algorithms };
+module.exports = { Client, Server, middleware, canonicalize, sign, algorithms };

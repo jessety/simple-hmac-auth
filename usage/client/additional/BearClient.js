@@ -16,7 +16,7 @@ class BearClient extends SimpleHMACAuth.Client {
 
     // Replace with the host / port of your service
     this.settings.host = 'localhost';
-    this.settings.port = 80;
+    this.settings.port = 8000;
     this.settings.ssl = false;
   }
 

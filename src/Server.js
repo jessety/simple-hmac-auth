@@ -8,14 +8,11 @@
 
 const url = require('url');
 const querystring = require('querystring');
-const EventEmitter = require('events');
-
-const bodyParser = require('body-parser');
 
 const { sign, algorithms } = require('./sign');
 const canonicalize = require('./canonicalize');
 
-class SimpleHMACAuth extends EventEmitter {
+class SimpleHMACAuth {
 
   /**
    * Instantiate a new authentication object
@@ -27,7 +24,6 @@ class SimpleHMACAuth extends EventEmitter {
    * @param {string}   [settings.bodySizeLimit='5mb']          Default size limit for request body parsing
    */
   constructor(settings) {
-    super();
 
     if (settings === undefined) {
       settings = {};
@@ -74,112 +70,9 @@ class SimpleHMACAuth extends EventEmitter {
   }
 
   /**
-   * Return middleware for use with Express
-   * @returns {function} - Middleware
-   */
-  middleware(options) {
-
-    // If 'true' is specified for either parsing strategies, use default parameters
-    if (options.json === true) {
-      options.json = { limit: this.settings.bodySizeLimit };
-    }
-
-    if (options.urlencoded === true) {
-      options.urlencoded = { extended: true, limit: this.settings.bodySizeLimit };
-    }
-
-    if (options.text === true) {
-      options.text = { type: 'text/plain', limit: this.settings.bodySizeLimit };
-    }
-
-    if (options.raw === true) {
-      options.raw = { type: 'application/octet-stream', limit: this.settings.bodySizeLimit };
-    }
-
-    const middleware = [];
-
-    // Populate the rawBody attribute by reading the input stream
-    // Because this function calls next() immediately and not on 'end', it can consume the data stream in parallel with the body parsers we're going to add below
-    // Of course, this also means that if it wasn't followed by middleware that waits until request emits 'end' to call next() that the rawBody would never be populated by the time the authentication middleware gets the request
-    // We counter that by including yet another piece of middleware after the body-parsers that resolves immediately if it finds a parsed body, or sets an observer for the request 'end'
-    // Whew.
-    middleware.push((request, response, next) => {
-
-      let data = '';
-
-      request.on('data', chunk => { 
-        data += chunk.toString();
-      });
-
-      request.on('end', () => {
-        request.rawBody = data;
-      });
-
-      next();
-    });
-
-    if (typeof options.json === 'object') {
-      middleware.push(bodyParser.json(options.json));
-    }
-
-    if (typeof options.urlencoded === 'object') {
-      middleware.push(bodyParser.urlencoded(options.urlencoded));
-    }
-
-    if (typeof options.text === 'object') {
-      middleware.push(bodyParser.text(options.text));
-    }
-
-    if (typeof options.raw === 'object') {
-      middleware.push(bodyParser.raw(options.raw));
-    }
-
-    // And finally, one last one that calls next() when the stream has completed.
-    // If there's no parsing middleware involved, that'll be whenever on('end') is called
-    // If there is, Express won't even push the request to this part until the 'body' has already been populated by one of the parsing strategies above.
-    middleware.push((request, response, next) => {
-
-      if (request.rawBody !== undefined) {
-        // One of the parsers did their work on this request
-        next();
-      }
-
-      request.on('end', () => {
-        next();
-      });
-    });
-
-    // Finally, middleware that autheticates the request- now that we know we have the raw body to work with.
-    const authMiddleware = async (request, response, next) => {
-
-      this.authenticate(request, request.rawBody).then(() => {
-
-        this.emit('accepted', {request, response});
-
-        next();
-
-      }).catch(error => {
-
-        this.emit('rejected', {
-          error,
-          request,
-          response,
-          next
-        });
-      });
-    };
-
-    // Push the auth middleware as an arrow fucntion so it retains a sense of self^H^H^H^H ..this
-    middleware.push((...parameters) => {
-      authMiddleware(...parameters);
-    });
-
-    return middleware;
-  }
-
-  /**
    * Authenticate a request
    * @param   {object}  request - An HTTP request
+   * @param   {object}  data - Body data for the request.
    * @returns {Promise} - Promise that resolves if the request authenticates, or rejects if it is not 
    */
   async authenticate(request, data) {
@@ -197,6 +90,7 @@ class SimpleHMACAuth extends EventEmitter {
         try {
 
           data = await this._getRawBody(request);
+
           request.body = data;
 
         } catch (e) {

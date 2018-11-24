@@ -12,7 +12,7 @@ const express = require('express');
 const SimpleHMACAuth = require('../../../index');
 
 const settings = {
-  port: 80,
+  port: 8000,
   secretsForAPIKeys: {
     'API_KEY': 'SECRET',
     'API_KEY_TWO': 'SECRET_TWO',
@@ -22,10 +22,8 @@ const settings = {
 
 const app = express();
 
-const auth = new SimpleHMACAuth.Server({verbose: true});
-
 // Required. Execute callback with either an error, or an API key.
-auth.secretForKey = (apiKey, callback) => {
+const secretForKey = (apiKey, callback) => {
 
   if (settings.secretsForAPIKeys.hasOwnProperty(apiKey)) {
 
@@ -37,7 +35,7 @@ auth.secretForKey = (apiKey, callback) => {
 };
 
 // Required. Handle requests that have failed authentication.
-auth.on('rejected', ({error, request, response, next}) => {
+const onRejected = (error, request, response, next) => {
 
   console.log(`Authentication failed`, error);
 
@@ -47,17 +45,26 @@ auth.on('rejected', ({error, request, response, next}) => {
 
   // If you want to ignore the auth failure and permit a request anyway, you certainly can.
   //next();
-});
+};
 
 // Optional. Log requests that have passed authentication.
-auth.on('accepted', ({request}) => {
+const onAccepted = (request, response) => {
   console.log(`Authentication succeeded for request with api key "${request.apiKey}" and signature: "${request.signature}"`);
-});
+};
 
-// Include the middleware included with the auth object
+// Register authentication middleware 
 // Also include which body-parser modules to parse the request data with
 // Specifying 'true' instead of an options object will use defaults
-app.use(auth.middleware({
+app.use(SimpleHMACAuth.middleware({
+
+  // Required
+  secretForKey: secretForKey,
+  onRejected: onRejected, 
+
+  // Optional
+  onAccepted: onAccepted,
+
+  // Body-parser options. All optional.
   json: true,
   urlencoded: { extended: true, limit: '10mb' },
   text: { type: 'application/octet-stream' }

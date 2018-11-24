@@ -12,6 +12,9 @@
 const SimpleHMACAuth = require('../../index');
 
 const client = new SimpleHMACAuth.Client('API_KEY', 'SECRET', {
+  host: 'localhost',
+  port: 8000,
+  ssl: false,
   verbose: true
 });
 

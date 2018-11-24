@@ -7,7 +7,6 @@
 'use strict';
 
 const crypto = require('crypto');
-const canonicalize = require('./canonicalize');
 
 // Permitted algorithms
 const algorithms = [

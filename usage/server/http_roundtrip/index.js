@@ -34,7 +34,7 @@ auth.secretForKey = (apiKey, callback) => {
   callback();
 };
 
-
+// Wait until the request has completed sending up data before validating
 const dataListenerRequestHandler = async (request, response) => {
 
   console.log(`Processing new request:`, new Date());
@@ -72,6 +72,7 @@ const dataListenerRequestHandler = async (request, response) => {
 
 };
 
+// Validate immediately, and let the auth system listen for body data
 const immediateRequestHandler = async (request, response) => {
 
   console.log(`Processing new request:`, new Date());
@@ -139,4 +140,3 @@ client.request(options).then(response => {
   console.error(`Client error:`, error);
   server.close();
 });
-

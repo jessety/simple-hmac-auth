@@ -20,6 +20,7 @@
     "no-extend-native": "error",
     "no-useless-escape": "error",
     "semi": "warn",
+    "comma-dangle": "warn",
     "indent": ["error", 2]
   }
 }
