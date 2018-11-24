@@ -12,7 +12,7 @@
     "url": "git+https://github.com/jessety/simple-hmac-auth.git"
   },
   "author": "Jesse T Youngblood",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/jessety/simple-hmac-auth/issues"
   },
