@@ -64,7 +64,7 @@ const dataListenerRequestHandler = async (request, response) => {
 
       console.log(`  Authentication failed`, error);
 
-      response.writeHead(401);
+      response.writeHead(401, {'content-type': 'application/json'});
       response.end(JSON.stringify({error}));
     }
 
