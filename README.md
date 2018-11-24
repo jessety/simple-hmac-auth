@@ -5,7 +5,16 @@ Middleware for Express designed to make building an API that uses HMAC signature
 
 When implemented, all incoming HTTP requests are signed and compared to the signature sent by the client.
 
-### Explanation
+
+- [Specification](#specification)
+- Server
+  - [Express Server](#express-server)
+  - [HTTP Server](#http-server)
+- Client
+  - [Client](#client-class)
+  - [Client Subclass](#client-subclass)
+
+## Specification
 
 For all incoming requests, the HTTP method, path, query string, headers and body should be signed with a secret and sent as the request's "signature." The headers should the user's API key, as well as a timestamp of when the request was made. On the server, the request is confirmed against the signature. If the signature does not match, the request is rejected. If the server receives a request with a timestamp older than five minutes, it is also rejected.
 
@@ -78,22 +87,94 @@ headers[authorization] = 'signature sha256' + signature
 ```
 
 
-### Usage
+## Usage
+
+Both a server and client are included, as is direct integration with Express.
+
+### Express Server
 
 ```javascript
 
 const express = require('express');
 const SimpleHMACAuth = require('simple-hmac-auth');
 
-const app = express();
-const auth = new SimpleHMACAuth.Server();
+const secretForAPIKey = {
+  API_KEY_ONE: 'SECRET_ONE',
+  API_KEY_TWO: 'SECRET_TWO'
+};
 
-app.use(auth.middleware({json: true}));
+const app = express();
+
+// Required. Execute callback with either an error, or an API key.
+const secretForKey = (apiKey, callback) => {
+
+  if (secretForAPIKey.hasOwnProperty(apiKey)) {
+
+    callback(null, secretForAPIKey[apiKey]);
+    return;
+  }
+
+  callback();
+};
+
+// Required. Handle requests that have failed authentication.
+const onRejected = (error, request, response, next) => {
+
+  console.log(`Authentication failed`, error);
+
+  response.status(401).json({
+    error: error
+  });
+};
+
+// Optional. Log requests that have passed authentication.
+const onAccepted = (request, response) => {
+  console.log(`Authentication succeeded for request with API key "${request.apiKey}" and signature: "${request.signature}"`);
+};
+
+// Register authentication middleware 
+// Include which body-parser modules to parse the request data with
+// Specifying 'true' instead of an options dictionary will use defaults
+app.use(SimpleHMACAuth.middleware({
+
+  // Required
+  secretForKey: secretForKey,
+  onRejected: onRejected, 
+
+  // Optional
+  onAccepted: onAccepted,
+
+  // Body-parser options. All optional.
+  json: true,
+  urlencoded: { extended: true, limit: '10mb' },
+  text: { type: 'application/octet-stream' }
+}));
+
+// Set up routes
+app.all('*', (request, response) => {
+  console.log(`Routing request: ${request.method} ${request.url}`);
+  response.status(200).end('200');
+});
+
+// Start the server
+app.listen(80, () => {
+  console.log(`Listening!`);
+});
+```
+
+### HTTP Server
+
+```javascript
+
+const http = require('http');
+const SimpleHMACAuth = require('simple-hmac-auth');
 
 const secretForAPIKey = {
-  exampleAPIKeyOne: 'secreTOne',
-  exampleAPIKeyTwo: 'secretTwo'
+  API_KEY_ONE: 'SECRET_ONE',
+  API_KEY_TWO: 'SECRET_TWO'
 };
+
+const auth = new SimpleHMACAuth.Server();
 
 // Required. Execute callback with either an error, or an API key.
 auth.secretForKey = (apiKey, callback) => {
@@ -104,39 +185,128 @@ auth.secretForKey = (apiKey, callback) => {
     return;
   }
 
-  callback({
-    message: 'API key not found'
-  });
+  callback();
 };
 
-// Required. Handle requests that have failed authentication.
-auth.on('rejected', ({error, request, response, next}) => {
+// Create HTTP server
+http.createServer((request, response) => {
 
-  response.status(401).json({
-    error: error
+  let data = '';
+
+  request.on('data', chunk => { 
+    data += chunk.toString();
   });
-});
 
-// Setup all routes
-app.all('*', (request, response) => {
-  response.status(200).end('200');
-});
+  request.on('end', async () => {
 
-app.listen(80, () => {
-  console.log('Listening');
+    console.log(`Got request ${request.method} ${request.url}`);
+
+    try {
+
+      const { apiKey, signature } = await auth.authenticate(request, data);
+
+      console.log(`Authentication passed for request with API key "${apiKey}" and signature "${signature}".`);
+
+      response.writeHead(200);
+      response.end('200');
+
+    } catch (error) {
+
+      console.log(`  Authentication failed`, error);
+
+      response.writeHead(401, {'content-type': 'application/json'});
+      response.end(JSON.stringify({error}));
+    }
+
+  });
+
+}).listen(8000);
+
+```
+
+### Client Class
+
+A client that implements HMAC signing is also included. Although the server component supports any type of input data, this client is specifically created to support JSON APIs. To point it to your service, instantiate it with your host, port, and if you've enabled SSL yet.
+
+```javascript
+
+const SimpleHMACAuth = require('simple-hmac-auth');
+
+const client = new SimpleHMACAuth.Client('API_KEY', 'SECRET', {
+  host: 'localhost',
+  port: 8000,
+  ssl: false
 });
 
 ```
 
-### Client
+Set up the request options 
 
-A client that implements HMAC signing is also included. To write a client for your service, simply extend the class and add functions that match your API routes.
+```javascript
+const options = {
+  method: 'POST',
+  path: '/items/',
+  query: {
+    string: 'string',
+    boolean: true,
+    number: 42,
+    object: { populated: true },
+    array: [ 1, 2, 3 ]
+  },
+  data: {
+    string: 'string',
+    boolean: true,
+    number: 42,
+    object: { populated: true },
+    array: [ 1, 2, 3 ]
+  }
+};
+
+```
+It returns a promise, but will execute a callback if provided with one.
+```javascript
+client.request(options, (error, results) => {
+
+  if (error) {
+    console.error(`Error:`, error);
+    return;
+  }
+
+  console.log(results);
+});
+```
+```javascript
+client.request(options).then(results => {
+  
+  console.log(results);
+  
+}).catch(error => {
+  
+  console.log(`Received error:`, error);
+});
+```
+```javascript
+try {
+
+  const results = await client.request(options);
+  
+  console.log(results);
+
+} catch (error) {
+
+  console.log('Error:', error);
+}
+```
+
+### Client Subclass
+
+To write a client for your service, simply extend the class and add functions that match your API routes.
 
 ```javascript
 
-const SimpleHMACAuthClient = require('simple-hmac-auth-client');
+const SimpleHMACAuth = require('simple-hmac-auth');
 
-class SampleClient extends SimpleHMACAuthClient {
+class SampleClient extends SimpleHMACAuth.Client {
 
   constructor(apiKey, secret, settings) {
     super(apiKey, secret, settings);
@@ -171,13 +341,13 @@ module.exports = SampleClient;
 
 ```
 
-Client instantiation
+Because this client's constructor specified the host, port, and SSL status of the service, it can be instantiated without any parameters beyond `apiKey` and `secret`. 
 
 ```javascript
 const client = new SampleClient(apiKey, secret);
 ```
 
-The client implements both promises and callbacks, so your client may use either.
+Just like it's parent class, the subclass implements both promises and callbacks.
 
 ```javascript
 const query = {
@@ -185,7 +355,8 @@ const query = {
   boolean: true,
   number: 42
 };
-
+```
+```javascript
 try {
 
   const results = await client.query(query);
@@ -197,14 +368,7 @@ try {
   console.log('Error:', error);
 }
 ```
-
 ```javascript 
-const query = {
-  string: 'string',
-  boolean: true,
-  number: 42
-};
-
 client.query(query, (error, results) => {
 
   if (error) {
