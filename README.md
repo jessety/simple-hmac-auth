@@ -12,6 +12,9 @@ Includes a server component, Express middleware, and a client.
 - Client
   - [Client](#client-class)
   - [Client Subclass](#client-subclass)
+- [Additional Implementations](#additional-implementations)
+  - [iOS](https://github.com/jessety/simple-hmac-auth-ios/)
+  - [PHP](https://github.com/jessety/simple-hmac-auth-php/)
 
 ## Specification
 
@@ -223,9 +226,13 @@ http.createServer((request, response) => {
 
 ```
 
+
+
+## Client Implementation
+
 ### Client Class
 
-A client that implements HMAC signing is also included. Although the server component supports any type of input data, this client is specifically created to support JSON APIs. To point it to your service, instantiate it with your host, port, and if you've enabled SSL yet.
+A JavaScript client that implements HMAC signing is included. Although the server component supports any type of input data, this client is specifically created to support JSON APIs. To point it to your service, instantiate it with your host, port, and if you've enabled SSL yet.
 
 ```javascript
 
@@ -379,3 +386,10 @@ client.query(query, (error, results) => {
 });
 
 ```
+
+## Additional Implementations
+
+Compatible `simple-hmac-auth` clients for iOS and PHP have also been implemented
+
+ * [iOS](https://github.com/jessety/simple-hmac-auth-ios/)
+ * [PHP](https://github.com/jessety/simple-hmac-auth-php/)
