@@ -1,7 +1,7 @@
 {
   "name": "simple-hmac-auth",
   "version": "1.0.0",
-  "description": "An easy way to add request signatures to an HTTP server",
+  "description": "Library designed to make building APIs that use HMAC signatures simple.",
   "main": "index.js",
   "scripts": {
     "lint": "node ./node_modules/eslint/bin/eslint.js .",
