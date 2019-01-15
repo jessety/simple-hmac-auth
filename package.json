@@ -11,6 +11,15 @@
     "type": "git",
     "url": "git+https://github.com/jessety/simple-hmac-auth.git"
   },
+  "keywords": [
+    "authentication",
+    "request signing",
+    "hmac",
+    "signatures",
+    "request",
+    "signing",
+    "api"
+  ],
   "author": "Jesse T Youngblood",
   "license": "MIT",
   "bugs": {
