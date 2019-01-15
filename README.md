@@ -27,18 +27,36 @@ This enables three things:
 
 The client's authenticity is confirmed by their continued ability to produce signatures based on their secret. This approach also prevents man-in-the-middle attacks because any tampering would result in the signature mismatching the request's contents. Finally, replay attacks are prevented because signed requests with old timestamps will be rejected.
 
-Each request requires three headers: `x-api-key`, `date`, and `authorization`. If the HTTP request contains a body, the `content-length` and `content-type` headers are also required.
+Request signatures are designed to be used in conjunction with HTTPS.
 
-The `x-api-key` header should contain the string representation of the user's API key.
+#### Headers
+
+Each request requires three headers: `date`, `authorization` and `signature`. If the HTTP request contains a body, the `content-length` and `content-type` headers are also required.
 
 The `date` header is a standard [RFC-822 (updated in RFC-1123)](https://tools.ietf.org/html/rfc822#section-5) date, as per [RFC-7231](https://tools.ietf.org/html/rfc7231#section-7.1.1.2).
 
-The `authorization` header is a standard as per [RFC-2617](https://tools.ietf.org/html/rfc2617#section-3.2.2) that, confusingly, is designed for authentication and not authorization. It contains a signature of the entire request.
+The `authorization` header is a standard as per [RFC-2617](https://tools.ietf.org/html/rfc2617#section-3.2.2) that, confusingly, is designed for authentication and not authorization. It should contain a string representation of the client's API key.
 
-To calculate the signature, the client first needs to create a string representation of the request. When the server recieves an authenticated request it computes the the signature and compares it with the signature provided by the client. Therefore, the client must create a string representation of the request in the exact same way as the server. This is called "canonicalization."
+The `signature` header contains the signature of the entire request, as well as a reference to the algorithm used to generate that signature.
+> (Note: As per [RFC-6648](https://tools.ietf.org/html/rfc6648), X- prefixed headers should not be adopted for new protocols, and thus the `signature` header is just `signature`.)
+
+
+A correctly signed HTTP request may look like this:
+```text
+  POST https://localhost:443/api/items/ 
+  content-type: application/json
+  content-length: 90
+  date: Tue, 20 Apr 2016 18:48:24 GMT
+  authorization: api-key SAMPLE_API_KEY
+  signature: sha256 64b0a4bd0cbb45c5b2fe8b1e4a15419b6018a9a90eb19046247af6a9e8896bd3
+```
+
+#### Signature
+
+To calculate the signature, the client first needs to create a string representation of the request. When the server receives an authenticated request it computes the the signature and compares it with the signature provided by the client. Therefore, the client must create a string representation of the request in the exact same way as the server. This is called "canonicalization."
 
 The format of a canonical representation of a request is:
-```
+```text
      HTTP Verb + \n
      URI + \n
      Canonical query string + \n
@@ -56,25 +74,26 @@ The canonical representations of these elements are as follows
 |Headers | lowerCase(keyA) + ':' + trim(valueA) + '\n' + lowerCase(keyB) + ':' + trim(valueB) | keyA:valueA<br>keyB:value%20B 
 |Hashed payload | hex(hash('sha256', bodyData)) | ... |
 
-The HTTP verb must be upper case. The URI should be url-encoded. The query string elements should be alphabetically sorted. The header keys must all be lower case (as per [RFC-2616](http://www.ietf.org/rfc/rfc2616.txt)) and alphabetically sorted. The only headers included in the signature should be: `x-api-key`, `date`, and optionally `content-length` and `content-type` if the HTTP body is not empty. The last line of the request string should be a hex representation of a SHA256 hash of the request body. If there is no request body, it should be the hash of an empty string.
+The HTTP verb must be upper case. The URI should be url-encoded. The query string elements should be alphabetically sorted. The header keys must all be lower case (as per [RFC-2616](http://www.ietf.org/rfc/rfc2616.txt)) and alphabetically sorted. The only headers included in the signature should be: `authorization` and `date`- however `content-length` and `content-type` should be included if the HTTP body is not empty. The last line of the request string should be a hex representation of a SHA256 hash of the request body. If there is no request body, it should be the hash of an empty string.
 
-Programatically:
+Programmatically:
 ```
      upperCase(method) + \n
      path + \n
      encode(paramA) + '=' + escape(valueA) + '&' + escape(paramB) + '=' + escape(valueB) + \n
-     lowerCase('a-api-key') + ':' + trim(_API_KEY_) + \n + lowerCase(content-length) + ':' + trim('15') + \n
+     lowerCase(headerKeyA) + ':' + trim(headerValueA) + \n + lowerCase(headerKeyB) + ':' + trim(headerKeyB) + \n
      hex(hash('sha256', bodyData)) + \n
 ```
 
 For Example
-```
+```text
      POST
      /items/test
      paramA=valueA&paraB=value%20B
+     authorization: api-key SAMPLE_API_KEY
      content-length:15
+     content-type: application/json
      date:Tue, 20 Apr 2016 18:48:24 GMT
-     x-api-key:12345
      8eb2e35250a66c65d981393c74cead26a66c33c54c4d4a327c31d3e5f08b9e1b
 ```
      
@@ -83,20 +102,59 @@ Then the HMAC signature of the entire request is generated by signing it with th
 const signature = hex(hmacSha256(secret, requestString))
 ```
 
-That value is then sent as the contents of the `authorization` header, with the preceding value 'signature' as well as the algorithm used to generate the hmac signature.
+That value is then sent as the contents of the `signature` header along with the algorithm used to generate the hmac signature.
 ```
-headers[authorization] = 'signature sha256' + signature
+headers[signature] = 'sha256 ' + signature
 ```
 
 
 ## Usage
 
-Both a server and client are included, as is direct integration with Express.
+A reference implementation of both a server and client are included, as is direct integration with Express.
+
 
 ### Express Server
 
-```javascript
+The included Express middleware requires a few options.
 
+```javascript
+const SimpleHMACAuth = require('simple-hmac-auth');
+
+app.use(SimpleHMACAuth.middleware({
+
+  // Required
+  secretForKey: (apiKey, callback) => {
+    // Call back with the correct secret for the specified API key
+    return 'secret';
+  },
+  onRejected: (error, request, response, next) => {
+    // Handle failed authentication
+    response.status(401).end('401');
+  }
+}));
+```
+
+Because the unparsed body of the request must be loaded and hashed to confirm authentication, the included middleware also parses the request body. If you would like to parse the contents of the request body, it accepts the same parameters as [body-parser](https://github.com/expressjs/body-parser):
+
+```javascript
+const SimpleHMACAuth = require('simple-hmac-auth');
+
+app.use(SimpleHMACAuth.middleware({
+
+  // Required
+  secretForKey: (apiKey, callback) => { return 'secret' },
+  onRejected: (error, request, response, next) => { response.status(401).end('401') }, 
+
+  // Body-parser options. All optional.
+  json: true,
+  urlencoded: { extended: true, limit: '10mb' },
+  text: { type: 'application/octet-stream' }
+}));
+```
+
+Full implementation:
+
+```javascript
 const express = require('express');
 const SimpleHMACAuth = require('simple-hmac-auth');
 
@@ -159,15 +217,16 @@ app.all('*', (request, response) => {
 });
 
 // Start the server
-app.listen(80, () => {
+app.listen(8000, () => {
   console.log(`Listening!`);
 });
 ```
 
 ### HTTP Server
 
-```javascript
+The server implementation provides a promise-based method.
 
+```javascript
 const http = require('http');
 const SimpleHMACAuth = require('simple-hmac-auth');
 
@@ -288,7 +347,7 @@ client.request(options).then(results => {
   
 }).catch(error => {
   
-  console.log(`Received error:`, error);
+  console.log(`Error:`, error);
 });
 ```
 ```javascript
@@ -300,7 +359,7 @@ try {
 
 } catch (error) {
 
-  console.log('Error:', error);
+  console.log(`Error:`, error);
 }
 ```
 
@@ -353,7 +412,7 @@ Because this client's constructor specified the host, port, and SSL status of th
 const client = new SampleClient(apiKey, secret);
 ```
 
-Just like it's parent class, the subclass implements both promises and callbacks.
+Just like its parent class, this subclass implements both promises and callbacks.
 
 ```javascript
 const query = {
