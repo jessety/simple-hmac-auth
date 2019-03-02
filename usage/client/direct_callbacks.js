@@ -26,14 +26,14 @@ const options = {
     boolean: true,
     number: 42,
     object: { populated: true },
-    array: [ 1, 2, 3 ]
+    array: [1, 2, 3]
   },
   data: {
     string: 'string',
     boolean: true,
     number: 42,
     object: { populated: true },
-    array: [ 1, 2, 3 ]
+    array: [1, 2, 3]
   }
 };
 

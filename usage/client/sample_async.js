@@ -22,7 +22,7 @@ const SampleClient = require('./SampleClient');
       string: 'string',
       boolean: true,
       number: 42,
-      object: {populated: true},
+      object: { populated: true },
       array: [1, 2, 3]
     };
 

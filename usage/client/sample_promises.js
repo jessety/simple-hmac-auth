@@ -18,15 +18,15 @@ const query = {
   string: 'string',
   boolean: true,
   number: 42,
-  object: {populated: true},
+  object: { populated: true },
   array: [1, 2, 3]
 };
 
 client.query(query).then(results => {
-  
+
   console.log(results);
-  
+
 }).catch(error => {
-  
+
   console.log(`Received error:`, error);
 });
