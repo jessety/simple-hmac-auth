@@ -18,7 +18,7 @@ Includes a server component, Express middleware, and a client.
 
 ## Specification
 
-For all incoming requests, the HTTP method, path, query string, headers and body should be signed with a secret and sent as the request's "signature." The headers should the user's API key, as well as a timestamp of when the request was made. On the server, the request is confirmed against the signature. If the signature does not match, the request is rejected. If the server receives a request with a timestamp older than five minutes, it is also rejected.
+For all incoming requests, the HTTP method, path, query string, headers and body should be signed with a secret and sent as the request's "signature." The headers should include the user's API key as well as a timestamp of when the request was made. On the server, the request signature is re-generated and confirmed against the signature from the client. If the signatures do not match the request is rejected. If the server receives a request with a timestamp older than five minutes it is also rejected.
 
 This enables three things:
 
