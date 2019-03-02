@@ -270,7 +270,7 @@ class Client {
         const signature = sign(canonical, secret, algorithm);
 
         // Populate the HTTP authorization header
-        headers.signature = `v2 ${algorithm} ${signature}`;
+        headers.signature = `simple-hmac-auth ${algorithm} ${signature}`;
       }
 
       const options = {

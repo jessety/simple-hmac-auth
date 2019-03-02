@@ -49,7 +49,7 @@ A correctly signed HTTP request may look like this:
   content-length: 90
   date: Tue, 20 Apr 2016 18:48:24 GMT
   authorization: api-key SAMPLE_API_KEY
-  signature: v2 sha256 64b0a4bd0cbb45c5b2fe8b1e4a15419b6018a9a90eb19046247af6a9e8896bd3
+  signature: simple-hmac-auth sha256 64b0a4bd0cbb45c5b2fe8b1e4a15419b6018a9a90eb19046247af6a9e8896bd3
 ```
 
 #### Signature
@@ -111,7 +111,7 @@ That value is then sent as the contents of the `signature` header along with the
 
 ```javascript
 // protocol version + ' ' + algorithm + ' ' + signature;
-headers[signature] = 'v2 sha256 ' + signature
+headers[signature] = 'simple-hmac-auth sha256 ' + signature
 ```
 
 ## Usage

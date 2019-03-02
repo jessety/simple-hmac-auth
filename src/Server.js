@@ -181,7 +181,7 @@ class SimpleHMACAuth {
 
       // Great! It looks like this is a recent request, and probably not a replay attack.
       // We expect the signature header to contain a string like this:
-      // 'v2 sha256 148c033512ad0c90e95ede5166089dcdf3b6c3b1b31da150e51484984300dcf2'
+      // 'simple-hmac-auth sha256 148c033512ad0c90e95ede5166089dcdf3b6c3b1b31da150e51484984300dcf2'
 
       const signatureComponents = request.headers.signature.split(' ');
 
@@ -189,21 +189,21 @@ class SimpleHMACAuth {
 
         reject({
           message: `Signature header is improperly formatted: "${request.headers.signature}"`,
-          details: `It should look like: "v2 sha256 a42d7b09a929b997aa8e6973bdbd5ca94326cbffc3d06a557d9ed36c6b80d4ff"`,
+          details: `It should look like: "simple-hmac-auth sha256 a42d7b09a929b997aa8e6973bdbd5ca94326cbffc3d06a557d9ed36c6b80d4ff"`,
           code: `SIGNATURE_HEADER_INVALID`
         });
         return;
       }
 
-      const version = signatureComponents[0];
+      const protocol = signatureComponents[0];
       const algorithm = signatureComponents[1];
       const signature = signatureComponents[2];
 
-      if (version !== 'v2') {
+      if (protocol !== 'simple-hmac-auth') {
 
         reject({
-          message: `Signature header included unsupported protocol version number: "${version}". Ensure the client and server are using the latest signature library.`,
-          details: `The supported versions are: v2`,
+          message: `Signature header included unsupported protocol version: "${protocol}". Ensure the client and server are using the latest signature library.`,
+          details: `Expected "simple-hmac-auth"`,
           code: `SIGNATURE_HEADER_INVALID`
         });
         return;
