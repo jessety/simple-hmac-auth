@@ -10,7 +10,7 @@ const crypto = require('crypto');
 
 // Only sign these headers
 const headerWhitelist = [
-  'x-api-key',
+  'authorization',
   'date',
   'content-length',
   'content-type'

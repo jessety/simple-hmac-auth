@@ -72,8 +72,8 @@ class SimpleHMACAuth {
   /**
    * Authenticate a request
    * @param   {object}  request - An HTTP request
-   * @param   {object}  data - Body data for the request.
-   * @returns {Promise} - Promise that resolves if the request authenticates, or rejects if it is not 
+   * @param   {object}  data - Body data for the request
+   * @returns {Promise} - Promise that resolves if the request authenticates, or rejects if it is not
    */
   async authenticate(request, data) {
 
@@ -89,7 +89,7 @@ class SimpleHMACAuth {
 
         try {
 
-          data = await this._getRawBody(request);
+          data = await this._rawBodyForRequest(request);
 
           request.body = data;
 
@@ -100,7 +100,7 @@ class SimpleHMACAuth {
       }
 
       // Pull the API key from the request
-      const apiKey = this._getApiKey(request);
+      const apiKey = this._apiKeyForRequest(request);
 
       if (apiKey === undefined) {
 
@@ -116,7 +116,7 @@ class SimpleHMACAuth {
       let secret;
       try {
 
-        secret = await this._getSecretForKey(apiKey);
+        secret = await this._secretForKey(apiKey);
 
       } catch (error) {
 
@@ -180,30 +180,31 @@ class SimpleHMACAuth {
       }
 
       // Great! It looks like this is a recent request, and probably not a replay attack.
-      // We expect the authorization header to contain a string like this: 'signature sha256 hwbjmsdfakdj31newfdnn'
+      // We expect the signature header to contain a string like this:
+      // 'v2 sha256 148c033512ad0c90e95ede5166089dcdf3b6c3b1b31da150e51484984300dcf2'
 
-      const authorizationComponents = request.headers.authorization.split(' ');
+      const signatureComponents = request.headers.signature.split(' ');
 
-      if (authorizationComponents.length < 3) {
+      if (signatureComponents.length < 3) {
 
         reject({
-          message: `Authorization header is improperly formatted: "${request.headers.authorization}"`,
-          details: `It should look like: "signature sha256 a42d7b09a929b997aa8e6973bdbd5ca94326cbffc3d06a557d9ed36c6b80d4ff"`,
-          code: `AUTHORIZATION_HEADER_INVALID`
+          message: `Signature header is improperly formatted: "${request.headers.signature}"`,
+          details: `It should look like: "v2 sha256 a42d7b09a929b997aa8e6973bdbd5ca94326cbffc3d06a557d9ed36c6b80d4ff"`,
+          code: `SIGNATURE_HEADER_INVALID`
         });
         return;
       }
 
-      const label = authorizationComponents[0];
-      const algorithm = authorizationComponents[1];
-      const signature = authorizationComponents[2];
+      const version = signatureComponents[0];
+      const algorithm = signatureComponents[1];
+      const signature = signatureComponents[2];
 
-      if (label !== 'signature') {
+      if (version !== 'v2') {
 
         reject({
-          message: `Authorization header is improperly formatted: "${request.headers.authorization}"`,
-          details: `It should look like: "signature hmac-sha256 a42d7b09a929b997aa8e6973bdbd5ca94326cbffc3d06a557d9ed36c6b80d4ff"`,
-          code: `AUTHORIZATION_HEADER_INVALID`
+          message: `Signature header included unsupported protocol version number: "${version}". Ensure the client and server are using the latest signature library.`,
+          details: `The supported versions are: v2`,
+          code: `SIGNATURE_HEADER_INVALID`
         });
         return;
       }
@@ -238,34 +239,7 @@ class SimpleHMACAuth {
       // It worked!
       request.authenticated = true;
 
-      resolve({apiKey, secret, signature});
-    });
-  }
-
-  /**
-   * Extract the raw body data from a request
-   * @private
-   * @param   {object} request - An HTTP request
-   * @returns {Promise} A promise that will resolve with the raw body of the request, or a blank string
-   */
-  _getRawBody(request) {
-
-    return new Promise(resolve => {
-
-      if (request.rawBody !== undefined && request.rawBody !== null) {
-        resolve(request.rawBody);
-        return;
-      }
-
-      let data = '';
-
-      request.on('data', chunk => { 
-        data += chunk.toString();
-      });
-
-      request.on('end', () => {
-        resolve(data);
-      });
+      resolve({ apiKey, secret, signature });
     });
   }
 
@@ -275,13 +249,19 @@ class SimpleHMACAuth {
    * @param   {object} request - An HTTP request
    * @returns {string} API Key, if included
    */
-  _getApiKey(request) {
+  _apiKeyForRequest(request) {
 
     let apiKey;
 
-    if (request.headers.hasOwnProperty('x-api-key')) {
+    if (request.headers.hasOwnProperty('authorization')) {
 
-      apiKey = request.headers['x-api-key'];
+      // The authorization header should look like this: 
+      // api-key sampleKey
+      const components = request.headers.authorization.split(' ');
+
+      if (components.length > 1) {
+        apiKey = components[1];
+      }
 
     } else {
 
@@ -312,7 +292,7 @@ class SimpleHMACAuth {
    * @param   {string}  apiKey API key we received from the client
    * @returns {Promise} Promise that we got a secret for that API key from userland
    */
-  _getSecretForKey(apiKey) {
+  _secretForKey(apiKey) {
 
     return new Promise((resolve, reject) => {
 
@@ -363,6 +343,33 @@ class SimpleHMACAuth {
           reject(error);
         });
       }
+    });
+  }
+
+  /**
+   * Extract the raw body data from a request
+   * @private
+   * @param   {object} request - An HTTP request
+   * @returns {Promise} A promise that will resolve with the raw body of the request, or a blank string
+   */
+  _rawBodyForRequest(request) {
+
+    return new Promise(resolve => {
+
+      if (request.rawBody !== undefined && request.rawBody !== null) {
+        resolve(request.rawBody);
+        return;
+      }
+
+      let data = '';
+
+      request.on('data', chunk => {
+        data += chunk.toString();
+      });
+
+      request.on('end', () => {
+        resolve(data);
+      });
     });
   }
 }
