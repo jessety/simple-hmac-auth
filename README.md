@@ -1,7 +1,7 @@
 simple-hmac-auth
 =============
 
-Node Library designed to make building an API that uses HMAC signatures simple.
+Specification and Node library designed to make building APIs that use HMAC signatures simple.
 
 Includes a server component, Express middleware, and a client.
 
