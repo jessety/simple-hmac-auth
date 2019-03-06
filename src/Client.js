@@ -92,9 +92,9 @@ class Client {
     this.settings = settings;
 
     if (settings.ssl) {
-      this.agent = new https.Agent({maxSockets: this.settings.maxSockets});
+      this.agent = new https.Agent({ maxSockets: this.settings.maxSockets });
     } else {
-      this.agent = new http.Agent({maxSockets: this.settings.maxSockets});
+      this.agent = new http.Agent({ maxSockets: this.settings.maxSockets });
     }
   }
 
@@ -194,7 +194,7 @@ class Client {
       }
 
       const headers = {
-        'x-api-key': apiKey,
+        'authorization': `api-key ${apiKey}`,
         'date': new Date().toUTCString()
       };
 
@@ -210,7 +210,7 @@ class Client {
         try {
           value = JSON.stringify(query[key]);
         } catch (e) {
-          fail({message: 'Could not serialize parameter ' + key + ': ' + e.message, error: e});
+          fail({ message: 'Could not serialize parameter ' + key + ': ' + e.message, error: e });
           return;
         }
 
@@ -233,7 +233,8 @@ class Client {
           bodyData = JSON.stringify(call.data);
         } catch (e) {
           fail({
-            message:'Could not serialize input data. ' + e.message, code: 'EBADINPUT'
+            message: 'Could not serialize input data. ' + e.message,
+            code: 'EBADINPUT'
           });
           return;
         }
@@ -269,7 +270,7 @@ class Client {
         const signature = sign(canonical, secret, algorithm);
 
         // Populate the HTTP authorization header
-        headers.authorization = `signature ${algorithm} ${signature}`;
+        headers.signature = `simple-hmac-auth ${algorithm} ${signature}`;
       }
 
       const options = {
@@ -319,7 +320,7 @@ class Client {
 
           try {
             object = JSON.parse(responseData);
-          } catch(e) {
+          } catch (e) {
             // This may or may not be OK, depending on the API call
           }
 
@@ -329,7 +330,7 @@ class Client {
             if (object && object.hasOwnProperty('error')) {
               fail(object.error);
             } else {
-              fail({message: 'Error ' + response.statusCode, code: response.statusCode});
+              fail({ message: 'Error ' + response.statusCode, code: response.statusCode });
             }
 
             return;
@@ -366,7 +367,7 @@ class Client {
         request.abort();
 
         fail({
-          message:'The request has timed out.',
+          message: 'The request has timed out.',
           code: 'ETIMEOUT'
         });
       });

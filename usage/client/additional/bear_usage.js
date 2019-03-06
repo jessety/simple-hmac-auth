@@ -37,7 +37,7 @@ function test() {
         color: 'red',
         createdTime: createdTime
       });
-      
+
       const bear = {};
 
       if (bear.id === undefined) {
@@ -54,7 +54,7 @@ function test() {
         string: 'string',
         boolean: true,
         number: 42,
-        object: {contents: true},
+        object: { contents: true },
         array: [1, 2, 3],
         'spaces in key': true,
         spacesInValue: 'present here',
@@ -95,7 +95,7 @@ function uploadFile(id) {
 
   console.log('Testing a file upload..');
 
-  const fileLocation = './bear_usage.js';
+  const fileLocation = `${__dirname}/bear_usage.js`;
 
   return new Promise((resolve, reject) => {
 
