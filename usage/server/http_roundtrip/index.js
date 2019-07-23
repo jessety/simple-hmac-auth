@@ -94,9 +94,12 @@ const immediateRequestHandler = async (request, response) => {
     console.log(`  Authentication failed`, error);
 
     response.writeHead(401);
-    response.end(JSON.stringify({error}));
+    response.end(JSON.stringify({
+      error: {
+        message: error.message
+      }
+    }));
   }
-
 };
 
 // Create HTTP server

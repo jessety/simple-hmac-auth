@@ -40,7 +40,9 @@ const onRejected = (error, request, response, next) => {
   console.log(`Authentication failed`, error);
 
   response.status(401).json({
-    error: error
+    error: {
+      message: error.message
+    }
   });
 
   // If you want to ignore the auth failure and permit a request anyway, you certainly can.
