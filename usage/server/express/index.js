@@ -2,7 +2,7 @@
 //  Simple HMAC Auth
 //  /usage/server/express/index.js
 //  Created by Jesse Youngblood on 11/21/18 at 15:14
-// 
+//
 
 /* eslint no-console: off, no-unused-vars: off */
 
@@ -14,9 +14,9 @@ const SimpleHMACAuth = require('../../../index');
 const settings = {
   port: 8000,
   secretsForAPIKeys: {
-    'API_KEY': 'SECRET',
-    'API_KEY_TWO': 'SECRET_TWO',
-    'API_KEY_THREE': 'SECRET_THREE'
+    API_KEY: 'SECRET',
+    API_KEY_TWO: 'SECRET_TWO',
+    API_KEY_THREE: 'SECRET_THREE'
   }
 };
 
@@ -46,7 +46,7 @@ const onRejected = (error, request, response, next) => {
   });
 
   // If you want to ignore the auth failure and permit a request anyway, you certainly can.
-  //next();
+  // next();
 };
 
 // Optional. Log requests that have passed authentication.
@@ -54,7 +54,7 @@ const onAccepted = (request, response) => {
   console.log(`Authentication succeeded for request with api key "${request.apiKey}" and signature: "${request.signature}"`);
 };
 
-// Register authentication middleware 
+// Register authentication middleware
 // Also include which body-parser modules to parse the request data with
 // Specifying 'true' instead of an options object will use defaults
 app.use(SimpleHMACAuth.middleware({

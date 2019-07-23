@@ -1,8 +1,8 @@
 //
 //  Simple HMAC Auth
 //  /src/sign.js
-//  Created by Jesse T Youngblood on 3/24/16 at 11:31am 
-//    
+//  Created by Jesse T Youngblood on 3/24/16 at 11:31am
+//
 
 'use strict';
 
@@ -20,7 +20,7 @@ const algorithms = [
  * @param   {string} canonical A canonicalized version of a request
  * @param   {string} secret    A secret key
  * @param   {string} algorithm Algorithm to use to generate the hmac
- * @returns {stri}   Signature for this request
+ * @returns {string}   Signature for this request
  */
 function sign(canonical, secret, algorithm) {
 

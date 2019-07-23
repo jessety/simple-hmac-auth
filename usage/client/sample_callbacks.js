@@ -1,8 +1,8 @@
 //
 //  Simple HMAC Auth
 //  /usage/client/sample_callbacks.js
-//  Created by Jesse T Youngblood on 3/23/16 at 10:42pm 
-//    
+//  Created by Jesse T Youngblood on 3/23/16 at 10:42pm
+//
 
 /* eslint no-console: off */
 
@@ -19,7 +19,7 @@ const query = {
   boolean: true,
   number: 42,
   object: { populated: true },
-  array: [1, 2, 3]
+  array: [ 1, 2, 3 ]
 };
 
 client.query(query, (error, results) => {

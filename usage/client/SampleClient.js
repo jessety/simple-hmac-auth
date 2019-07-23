@@ -2,8 +2,8 @@
 //  /usage/client/SampleClient.js
 //  Example of a SimpleHMACAuth Client subclass for a service
 //  This client may be used with either callbacks or promises
-//  Created by Jesse T Youngblood on 11/23/18 at 19:11pm 
-//    
+//  Created by Jesse T Youngblood on 11/23/18 at 19:11pm
+//
 
 'use strict';
 

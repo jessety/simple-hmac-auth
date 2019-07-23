@@ -1,8 +1,8 @@
 //
 //  Simple HMAC Auth
 //  /src/Client.js
-//  Created by Jesse T Youngblood on 3/23/16 at 10:42pm 
-//    
+//  Created by Jesse T Youngblood on 3/23/16 at 10:42pm
+//
 
 'use strict';
 
@@ -193,8 +193,8 @@ class Client {
       }
 
       const headers = {
-        'authorization': `api-key ${apiKey}`,
-        'date': new Date().toUTCString()
+        authorization: `api-key ${apiKey}`,
+        date: new Date().toUTCString()
       };
 
       // Sort query keys alphabetically
@@ -251,7 +251,7 @@ class Client {
 
       if (secret !== undefined) {
 
-        const algorithm = this.settings.algorithm;
+        const { algorithm } = this.settings;
 
         // First, be sure the client is set up with a valid algorithm
         if (!algorithms.includes(algorithm)) {
@@ -326,7 +326,7 @@ class Client {
 
             if (object && object.hasOwnProperty('error') && typeof object.error === 'object') {
 
-              for (let [key, value] of Object.entries(object.error)) {
+              for (let [ key, value ] of Object.entries(object.error)) {
 
                 // You can't overwrite the name of a JavaScript error
                 if (key === 'name') {

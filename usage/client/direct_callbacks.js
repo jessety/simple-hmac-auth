@@ -3,7 +3,7 @@
 //  Direct, non-subclassed usage of the Client class
 //  /usage/client/direct_callbacks.js
 //  Created by Jesse T Youngblood on 5/31/19 at 11:15
-//    
+//
 
 /* eslint no-console: off */
 
@@ -26,7 +26,7 @@ const options = {
     boolean: true,
     number: 42,
     object: { populated: true },
-    array: [1, 2, 3]
+    array: [ 1, 2, 3 ]
   }
 };
 

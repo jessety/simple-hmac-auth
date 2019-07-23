@@ -1,8 +1,8 @@
 //
 //  Simple HMAC Auth
 //  /src/Server.js
-//  Created by Jesse T Youngblood on 3/24/16 at 2:29pm 
-//    
+//  Created by Jesse T Youngblood on 3/24/16 at 2:29pm
+//
 
 'use strict';
 
@@ -178,9 +178,7 @@ class SimpleHMACAuth {
         return;
       }
 
-      const protocol = signatureComponents[0];
-      const algorithm = signatureComponents[1];
-      const signature = signatureComponents[2];
+      const [ protocol, algorithm, signature ] = signatureComponents;
 
       if (protocol !== 'simple-hmac-auth') {
 
@@ -232,7 +230,7 @@ class SimpleHMACAuth {
 
     if (request.headers.hasOwnProperty('authorization')) {
 
-      // The authorization header should look like this: 
+      // The authorization header should look like this:
       // api-key sampleKey
       const components = request.headers.authorization.split(' ');
 
@@ -281,7 +279,7 @@ class SimpleHMACAuth {
         reject(error);
       }
 
-      // Give up after a certain amount of time. 
+      // Give up after a certain amount of time.
       // This is to prevent situations where connections are left hanging when the client's secretForKey function has stalled
       const timer = setTimeout(() => {
 

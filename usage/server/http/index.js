@@ -2,7 +2,7 @@
 //  Simple HMAC Auth
 //  /usage/server/http/index.js
 //  Created by Jesse Youngblood on 11/23/18 at 20:03
-// 
+//
 
 /* eslint no-console: off, no-unused-vars: off */
 
@@ -14,9 +14,9 @@ const SimpleHMACAuth = require('../../../index');
 const settings = {
   port: 8000,
   secretsForAPIKeys: {
-    'API_KEY': 'SECRET',
-    'API_KEY_TWO': 'SECRET_TWO',
-    'API_KEY_THREE': 'SECRET_THREE'
+    API_KEY: 'SECRET',
+    API_KEY_TWO: 'SECRET_TWO',
+    API_KEY_THREE: 'SECRET_THREE'
   }
 };
 
@@ -55,11 +55,11 @@ http.createServer(async (request, response) => {
 
     response.setHeader('Content-Type', 'application/json');
     response.writeHead(401);
-    response.end(JSON.stringify({ 
+    response.end(JSON.stringify({
       error: {
         message: error.message
       }
-     }));
+    }));
   }
 
 }).listen(settings.port);
