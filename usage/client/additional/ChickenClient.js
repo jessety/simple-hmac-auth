@@ -2,8 +2,8 @@
 //  Simple HMAC Auth
 //  /usage/client/ChickenClient.js
 //  Sample Client subclass, designed to be used with promises
-//  Created by Jesse T Youngblood on 11/22/18 at 12:20pm 
-//    
+//  Created by Jesse T Youngblood on 11/22/18 at 12:20pm
+//
 
 'use strict';
 
@@ -13,7 +13,7 @@ class ChickenClient extends SimpleHMACAuth.Client {
 
   constructor(apiKey, secret, settings) {
     super(apiKey, secret, settings);
-    
+
     this.settings.host = 'api.samplechickenservice.software';
     this.settings.port = 443;
     this.settings.ssl = true;

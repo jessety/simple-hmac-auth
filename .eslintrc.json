@@ -1,7 +1,7 @@
 {
   "extends": "eslint:recommended",
   "parserOptions": {
-    "ecmaVersion": 8
+    "ecmaVersion": 2018
   },
   "env": {
     "node": true,
@@ -10,8 +10,7 @@
   "rules": {
     "no-console": "error",
     "strict": ["error", "global"],
-    "no-unused-vars": "warn",
-    "no-undef": "warn",
+    "no-unused-vars": ["warn", { "args": "none" }],
     "no-undef-init": "warn",
     "no-await-in-loop": "warn",
     "no-bitwise": "warn",
@@ -21,7 +20,29 @@
     "no-useless-escape": "error",
     "semi": "warn",
     "comma-dangle": "warn",
-    "indent": ["error", 2]
+    "template-curly-spacing": ["warn", "never"],
+    "one-var": ["warn", "never"],
+    "no-var": "warn",
+    "prefer-const": ["warn", { "destructuring": "all" }],
+    "operator-linebreak": ["error", "before"],
+    "quote-props": ["warn", "as-needed"],
+    "linebreak-style": ["error", "unix"],
+    "no-eval": "error",
+    "no-throw-literal": "error",
+
+    "indent": ["warn", 2, { "SwitchCase": 1 }],
+    "object-curly-spacing": ["warn", "always", { "objectsInObjects": true, "arraysInObjects": true }],
+    "array-bracket-spacing": ["error", "always", { "singleValue": false, "objectsInArrays": false }],
+    "prefer-destructuring": ["warn", {
+      "VariableDeclarator": { "array": true, "object": true },
+      "AssignmentExpression": { "array": false, "object": false }
+    }],
+    "no-multiple-empty-lines": ["error", { "max": 2, "maxEOF": 1 }],
+    "no-trailing-spaces": "error",
+    "quotes": ["warn", "single", { "allowTemplateLiterals": true }],
+    "space-before-function-paren": ["warn", { "anonymous": "never", "named": "never", "asyncArrow": "always" }],
+    "space-in-parens": ["warn", "never"],
+    "spaced-comment": ["warn", "always"],
+    "space-unary-ops": ["warn", { "words": true, "nonwords": false }]
   }
 }
-

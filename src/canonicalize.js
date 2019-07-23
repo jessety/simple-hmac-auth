@@ -1,8 +1,8 @@
 //
 //  Simple HMAC Auth
 //  /src/canonicalize.js
-//  Created by Jesse T Youngblood on 3/24/16 at 21:19 
-//    
+//  Created by Jesse T Youngblood on 3/24/16 at 21:19
+//
 
 'use strict';
 
@@ -27,7 +27,7 @@ const headerWhitelist = [
  */
 function canonicalize(method, uri, queryString, headers, data) {
 
-  // Hash the method, the path, aplhabetically sorted headers, alphabetically sorted GET parameters, and body data 
+  // Hash the method, the path, aplhabetically sorted headers, alphabetically sorted GET parameters, and body data
 
   method = method.toUpperCase();
 
@@ -42,7 +42,7 @@ function canonicalize(method, uri, queryString, headers, data) {
   // Create a new list of headers, with the keys all lower case. Do this before sorting them, to make sure we don't bork the sort.
   const cleanHeaders = {};
 
-  for (let [key, value] of Object.entries(headers)) {
+  for (let [ key, value ] of Object.entries(headers)) {
 
     key = key.toLowerCase();
 
@@ -58,7 +58,7 @@ function canonicalize(method, uri, queryString, headers, data) {
   }
 
   // Get the list of all header keys
-  let headerKeys = Object.keys(cleanHeaders);
+  const headerKeys = Object.keys(cleanHeaders);
 
   // Sort the header keys alphabetically
   headerKeys.sort();
@@ -66,7 +66,7 @@ function canonicalize(method, uri, queryString, headers, data) {
   // Create a string of all headers, arranged alphabetically, seperated by newlines
   let headerString = '';
 
-  for (let [index, key ] of headerKeys.entries()) {
+  for (const [ index, key ] of headerKeys.entries()) {
 
     let value = cleanHeaders[key];
 

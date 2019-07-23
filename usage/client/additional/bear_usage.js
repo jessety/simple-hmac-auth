@@ -1,7 +1,7 @@
 //
 //  Simple HMAC Auth
 //  /usage/client/bear_usage.js
-//  Created by Jesse T Youngblood on 3/23/16 at 10:42pm 
+//  Created by Jesse T Youngblood on 3/23/16 at 10:42pm
 //
 
 /* eslint no-console: off */
@@ -30,7 +30,7 @@ function test() {
 
       console.log(' === Creating a new bear');
 
-      // const bear = 
+      // const bear =
       await client.create({
         name: 'Red Panda',
         size: 'small and unthreatening',
@@ -55,13 +55,13 @@ function test() {
         boolean: true,
         number: 42,
         object: { contents: true },
-        array: [1, 2, 3],
+        array: [ 1, 2, 3 ],
         'spaces in key': true,
         spacesInValue: 'present here',
 
-        'Norway': 'ø',
-        'Spain': 'ñ',
-        'Burger': '🍔'
+        Norway: 'ø',
+        Spain: 'ñ',
+        Burger: '🍔'
       };
 
       console.log(' === Updating bear');

@@ -2,7 +2,7 @@
 //  Simple HMAC Auth
 //  /usage/client/sample_async.js
 //  Created by Jesse T Youngblood on 11/23/18 at 19:15
-//    
+//
 
 /* eslint no-console: off */
 
@@ -23,7 +23,7 @@ const SampleClient = require('./SampleClient');
       boolean: true,
       number: 42,
       object: { populated: true },
-      array: [1, 2, 3]
+      array: [ 1, 2, 3 ]
     };
 
     const results = await client.query(query);

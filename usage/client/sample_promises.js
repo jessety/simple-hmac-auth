@@ -2,7 +2,7 @@
 //  Simple HMAC Auth
 //  /usage/client/sample_promises.js
 //  Created by Jesse T Youngblood on 11/23/18 at 19:14
-//    
+//
 
 /* eslint no-console: off */
 
@@ -19,7 +19,7 @@ const query = {
   boolean: true,
   number: 42,
   object: { populated: true },
-  array: [1, 2, 3]
+  array: [ 1, 2, 3 ]
 };
 
 client.query(query).then(results => {

@@ -2,7 +2,7 @@
 //  Simple HMAC Auth
 //  /src/middleware.js
 //  Created by Jesse T Youngblood on 11/24/18 at 10:52
-//    
+//
 
 'use strict';
 
@@ -47,7 +47,7 @@ class ExpressSimpleHMACServer extends Server {
 
       let data = '';
 
-      request.on('data', chunk => { 
+      request.on('data', chunk => {
         data += chunk.toString();
       });
 

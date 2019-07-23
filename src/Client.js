@@ -1,8 +1,8 @@
 //
 //  Simple HMAC Auth
 //  /src/Client.js
-//  Created by Jesse T Youngblood on 3/23/16 at 10:42pm 
-//    
+//  Created by Jesse T Youngblood on 3/23/16 at 10:42pm
+//
 
 'use strict';
 
@@ -11,6 +11,7 @@ const https = require('https');
 
 const { sign, algorithms } = require('./sign');
 const canonicalize = require('./canonicalize');
+const AuthError = require('./AuthError');
 
 class Client {
 
@@ -32,7 +33,7 @@ class Client {
 
     if (typeof settings !== 'object') {
 
-      throw 'Client created with invalid settings.';
+      throw new AuthError('Client created with invalid settings.');
     }
 
     if (!settings.hasOwnProperty('verbose') || typeof settings.verbose !== 'boolean') {
@@ -41,7 +42,7 @@ class Client {
 
     if (apiKey === undefined || apiKey === null || apiKey === '' || typeof apiKey !== 'string') {
 
-      throw 'Client created without an API key.';
+      throw new AuthError('Client created without an API key.');
     }
 
     settings.apiKey = apiKey;
@@ -53,7 +54,7 @@ class Client {
 
     } else if (secret === '' || typeof secret !== 'string') {
 
-      throw 'Client created with an invalid secret.';
+      throw new AuthError('Client created with an invalid secret.');
 
     } else {
 
@@ -167,6 +168,8 @@ class Client {
           return;
         }
 
+        // Otherwise, assume this was a promise
+
         reject(error);
       };
 
@@ -174,16 +177,12 @@ class Client {
       // The query, the body, Adnan Syed, etc.
 
       if (method === undefined) {
-        fail({
-          message: 'Request did not include HTTP method'
-        });
+        fail(new AuthError('Request did not include HTTP method'));
         return;
       }
 
       if (path === undefined) {
-        fail({
-          message: 'Request did not include a path'
-        });
+        fail(new AuthError('Request did not include a path'));
         return;
       }
 
@@ -194,8 +193,8 @@ class Client {
       }
 
       const headers = {
-        'authorization': `api-key ${apiKey}`,
-        'date': new Date().toUTCString()
+        authorization: `api-key ${apiKey}`,
+        date: new Date().toUTCString()
       };
 
       // Sort query keys alphabetically
@@ -210,7 +209,9 @@ class Client {
         try {
           value = JSON.stringify(query[key]);
         } catch (e) {
-          fail({ message: 'Could not serialize parameter ' + key + ': ' + e.message, error: e });
+          const error = new AuthError(`Could not serialize parameter ${key}: ${e.message}`);
+          error.details = e;
+          fail(error);
           return;
         }
 
@@ -232,10 +233,7 @@ class Client {
         try {
           bodyData = JSON.stringify(call.data);
         } catch (e) {
-          fail({
-            message: 'Could not serialize input data. ' + e.message,
-            code: 'EBADINPUT'
-          });
+          fail(new AuthError(`Could not serialize input data: ${e.message}`, 'EBADINPUT'));
           return;
         }
       }
@@ -253,15 +251,12 @@ class Client {
 
       if (secret !== undefined) {
 
-        const algorithm = this.settings.algorithm;
+        const { algorithm } = this.settings;
 
         // First, be sure the client is set up with a valid algorithm
         if (!algorithms.includes(algorithm)) {
 
-          fail({
-            message: `Configured using invalid hmac algorithm: "${algorithm}". The only supported hmac algorithms are: "${algorithms.join('", "')}"`,
-            code: `HMAC_ALGORITHM_INVALID`
-          });
+          fail(new AuthError(`Configured using invalid hmac algorithm: "${algorithm}". The only supported hmac algorithms are: "${algorithms.join('", "')}"`, `HMAC_ALGORITHM_INVALID`));
           return;
         }
 
@@ -327,12 +322,22 @@ class Client {
           // Check for an error
           if (response.statusCode !== 200) {
 
-            if (object && object.hasOwnProperty('error')) {
-              fail(object.error);
-            } else {
-              fail({ message: 'Error ' + response.statusCode, code: response.statusCode });
+            const error = new AuthError(`Error ${response.statusCode}`);
+
+            if (object && object.hasOwnProperty('error') && typeof object.error === 'object') {
+
+              for (let [ key, value ] of Object.entries(object.error)) {
+
+                // You can't overwrite the name of a JavaScript error
+                if (key === 'name') {
+                  key = 'error_name';
+                }
+
+                error[key] = value;
+              }
             }
 
+            fail(error);
             return;
           }
 
@@ -366,10 +371,7 @@ class Client {
 
         request.abort();
 
-        fail({
-          message: 'The request has timed out.',
-          code: 'ETIMEOUT'
-        });
+        fail(new AuthError('The request has timed out.', 'ETIMEOUT'));
       });
 
       if (bodyData !== undefined) {

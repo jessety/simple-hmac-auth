@@ -2,8 +2,8 @@
 //  Simple HMAC Auth
 //  /usage/client/BearClient.js
 //  Sample Client subclass. This class may be used with either callbacks or promises
-//  Created by Jesse T Youngblood on 3/23/16 at 10:42pm 
-//    
+//  Created by Jesse T Youngblood on 3/23/16 at 10:42pm
+//
 
 'use strict';
 

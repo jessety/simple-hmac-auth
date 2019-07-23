@@ -2,7 +2,7 @@
 //  Simple HMAC Auth
 //  /usage/server/http_roundtrip/index.js
 //  Created by Jesse Youngblood on 11/23/18 at 23:53
-// 
+//
 
 /* eslint no-console: off, no-unused-vars: off */
 
@@ -14,13 +14,13 @@ const SimpleHMACAuth = require('../../../index');
 const settings = {
   port: 8000,
   secretsForAPIKeys: {
-    'API_KEY': 'SECRET',
-    'API_KEY_TWO': 'SECRET_TWO',
-    'API_KEY_THREE': 'SECRET_THREE'
+    API_KEY: 'SECRET',
+    API_KEY_TWO: 'SECRET_TWO',
+    API_KEY_THREE: 'SECRET_THREE'
   }
 };
 
-const auth = new SimpleHMACAuth.Server({verbose: true});
+const auth = new SimpleHMACAuth.Server({ verbose: true });
 
 // Required. Execute callback with either an error, or an API key.
 auth.secretForKey = (apiKey, callback) => {
@@ -41,7 +41,7 @@ const dataListenerRequestHandler = async (request, response) => {
 
   let data = '';
 
-  request.on('data', chunk => { 
+  request.on('data', chunk => {
     data += chunk.toString();
   });
 
@@ -64,8 +64,8 @@ const dataListenerRequestHandler = async (request, response) => {
 
       console.log(`  Authentication failed`, error);
 
-      response.writeHead(401, {'content-type': 'application/json'});
-      response.end(JSON.stringify({error}));
+      response.writeHead(401, { 'content-type': 'application/json' });
+      response.end(JSON.stringify({ error }));
     }
 
   });
@@ -94,9 +94,12 @@ const immediateRequestHandler = async (request, response) => {
     console.log(`  Authentication failed`, error);
 
     response.writeHead(401);
-    response.end(JSON.stringify({error}));
+    response.end(JSON.stringify({
+      error: {
+        message: error.message
+      }
+    }));
   }
-
 };
 
 // Create HTTP server
