@@ -11,6 +11,7 @@ const querystring = require('querystring');
 
 const { sign, algorithms } = require('./sign');
 const canonicalize = require('./canonicalize');
+const AuthError = require('./AuthError');
 
 class SimpleHMACAuth {
 
@@ -104,10 +105,7 @@ class SimpleHMACAuth {
 
       if (apiKey === undefined) {
 
-        reject({
-          message: `Missing API Key`,
-          code: `API_KEY_MISSING`
-        });
+        reject(new AuthError(`Missing API Key`, `API_KEY_MISSING`));
         return;
       }
 
@@ -124,10 +122,7 @@ class SimpleHMACAuth {
 
         if (error === undefined) {
 
-          reject({
-            message: `Internal failure while attempting to locate secret for API key "${apiKey}"`,
-            code: `INTERNAL_ERROR_SECRET_DISCOVERY`
-          });
+          reject(new AuthError(`Internal failure while attempting to locate secret for API key "${apiKey}"`, `INTERNAL_ERROR_SECRET_DISCOVERY`));
           return;
         }
 
@@ -137,10 +132,7 @@ class SimpleHMACAuth {
 
       if (secret === undefined) {
 
-        reject({
-          message: `Unrecognized API key: ${apiKey}`,
-          code: `API_KEY_UNRECOGNIZED`
-        });
+        reject(new AuthError(`Unrecognized API key: ${apiKey}`, `API_KEY_UNRECOGNIZED`));
         return;
       }
 
@@ -148,19 +140,13 @@ class SimpleHMACAuth {
 
       if (!request.headers.hasOwnProperty('authorization')) {
 
-        reject({
-          message: `Missing authorization. Please sign all incoming requests with the 'authorization' header.`,
-          code: `AUTHORIZATION_HEADER_MISSING`
-        });
+        reject(new AuthError(`Missing authorization. Please sign all incoming requests with the 'authorization' header.`, `AUTHORIZATION_HEADER_MISSING`));
         return;
       }
 
       if (!request.headers.hasOwnProperty('date')) {
 
-        reject({
-          message: `Missing timestamp. Please timestamp all incoming requests by including 'date' header.`,
-          code: `DATE_HEADER_MISSING`
-        });
+        reject(new AuthError(`Missing timestamp. Please timestamp all incoming requests by including 'date' header.`, `DATE_HEADER_MISSING`));
         return;
       }
 
@@ -171,11 +157,9 @@ class SimpleHMACAuth {
       // If this request was made over [60] seconds ago, ignore it
       if (now - requestTime > this.settings.permittedTimestampSkew) {
 
-        reject({
-          message: `Timestamp is too old. Recieved: "${request.headers.date}" current time: "${now.toUTCString()}"`,
-          code: `DATE_HEADER_INVALID`,
-          time: now.toUTCString()
-        });
+        const error = new AuthError(`Timestamp is too old. Recieved: "${request.headers.date}" current time: "${now.toUTCString()}"`, `DATE_HEADER_INVALID`);
+        error.time = now.toUTCString();
+        reject(error);
         return;
       }
 
@@ -187,11 +171,10 @@ class SimpleHMACAuth {
 
       if (signatureComponents.length < 3) {
 
-        reject({
-          message: `Signature header is improperly formatted: "${request.headers.signature}"`,
-          details: `It should look like: "simple-hmac-auth sha256 a42d7b09a929b997aa8e6973bdbd5ca94326cbffc3d06a557d9ed36c6b80d4ff"`,
-          code: `SIGNATURE_HEADER_INVALID`
-        });
+        const error = new AuthError(`Signature header is improperly formatted: "${request.headers.signature}"`, `SIGNATURE_HEADER_INVALID`);
+        error.details = `It should look like: "simple-hmac-auth sha256 a42d7b09a929b997aa8e6973bdbd5ca94326cbffc3d06a557d9ed36c6b80d4ff"`;
+
+        reject(error);
         return;
       }
 
@@ -201,20 +184,17 @@ class SimpleHMACAuth {
 
       if (protocol !== 'simple-hmac-auth') {
 
-        reject({
-          message: `Signature header included unsupported protocol version: "${protocol}". Ensure the client and server are using the latest signature library.`,
-          details: `Expected "simple-hmac-auth"`,
-          code: `SIGNATURE_HEADER_INVALID`
-        });
+        const error = new AuthError(`Signature header included unsupported protocol version: "${protocol}". Ensure the client and server are using the latest signature library.`, `SIGNATURE_HEADER_INVALID`);
+
+        error.details = `Expected "simple-hmac-auth"`;
+
+        reject(error);
         return;
       }
 
       if (!algorithms.includes(algorithm)) {
 
-        reject({
-          message: `Authorization header send invalid algorithm: "${algorithm}". The only supported hmac algorithms are: "${algorithms.join('", "')}"`,
-          code: `HMAC_ALGORITHM_INVALID`
-        });
+        reject(new AuthError(`Authorization header send invalid algorithm: "${algorithm}". The only supported hmac algorithms are: "${algorithms.join('", "')}"`, `HMAC_ALGORITHM_INVALID`));
         return;
       }
 
@@ -229,10 +209,7 @@ class SimpleHMACAuth {
 
       if (signature !== calculatedSignature) {
 
-        reject({
-          message: `Signature is invalid.`,
-          code: `SIGNATURE_INVALID`
-        });
+        reject(new AuthError(`Signature is invalid.`, `SIGNATURE_INVALID`));
         return;
       }
 
@@ -298,21 +275,17 @@ class SimpleHMACAuth {
 
       if (typeof this.secretForKey !== 'function') {
 
-        reject({
-          message: `Missing secretForKey function`,
-          details: `Please implement a 'secretForKey' delegate function`
-        });
-        return;
+        const error = new AuthError(`Missing secretForKey function`);
+        error.details = `Please implement a 'secretForKey' delegate function`;
+
+        reject(error);
       }
 
       // Give up after a certain amount of time. 
       // This is to prevent situations where connections are left hanging when the client's secretForKey function has stalled
       const timer = setTimeout(() => {
 
-        reject({
-          message: `Internal failure while attempting to locate secret for API key "${apiKey}": secretForKey has timed out after ${(this.settings.secretForKeyTimeout / 1000)} seconds`,
-          code: `INTERNAL_ERROR_SECRET_TIMEOUT`
-        });
+        reject(new AuthError(`Internal failure while attempting to locate secret for API key "${apiKey}": secretForKey has timed out after ${(this.settings.secretForKeyTimeout / 1000)} seconds`, `INTERNAL_ERROR_SECRET_TIMEOUT`));
 
       }, this.settings.secretForKeyTimeout);
 
