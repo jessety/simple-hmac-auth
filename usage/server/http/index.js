@@ -20,7 +20,7 @@ const settings = {
   }
 };
 
-const auth = new SimpleHMACAuth.Server({verbose: true});
+const auth = new SimpleHMACAuth.Server({ verbose: true });
 
 // Required. Execute callback with either an error, or an API key.
 auth.secretForKey = (apiKey, callback) => {
@@ -36,24 +36,30 @@ auth.secretForKey = (apiKey, callback) => {
 
 // Create HTTP server
 http.createServer(async (request, response) => {
-  
-  console.log(`Processing new request:`, new Date());
+
+  console.log(`Processing new request`, new Date());
 
   try {
 
+    // Sending 'true' as the 2nd parameter instead of the raw request body instructs simple-hmac-auth to handle the body itself
     const { apiKey, signature } = await auth.authenticate(request, true);
-    
-    console.log(`  Authentication passed for request with API key "${apiKey}" and signature "${signature}".`);
+
+    console.log(`  Authentication successful. API Key "${apiKey}" signature "${signature}": ${request.method} ${request.url}`);
 
     response.writeHead(200);
     response.end('200');
 
   } catch (error) {
-    
-    console.log(`  Authentication failed`, error);
 
+    console.log(`  Authentication failed: ${request.method} ${request.url}`, error);
+
+    response.setHeader('Content-Type', 'application/json');
     response.writeHead(401);
-    response.end(JSON.stringify({error}));
+    response.end(JSON.stringify({ 
+      error: {
+        message: error.message
+      }
+     }));
   }
 
 }).listen(settings.port);

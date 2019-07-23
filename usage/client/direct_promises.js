@@ -2,7 +2,7 @@
 //  Simple HMAC Auth
 //  Direct, non-subclassed usage of the Client class
 //  /usage/client/direct_callbacks.js
-//  Created by Jesse T Youngblood on 5/31/19 at 11:15
+//  Created by Jesse T Youngblood on 11/23/18 at 19:23
 //    
 
 /* eslint no-console: off */
@@ -19,9 +19,16 @@ const client = new SimpleHMACAuth.Client('API_KEY', 'SECRET', {
 });
 
 const options = {
-  method: 'GET',
+  method: 'POST',
   path: '/items/',
   query: {
+    string: 'string',
+    boolean: true,
+    number: 42,
+    object: { populated: true },
+    array: [1, 2, 3]
+  },
+  data: {
     string: 'string',
     boolean: true,
     number: 42,
@@ -30,12 +37,11 @@ const options = {
   }
 };
 
-client.request(options, (error, results) => {
-
-  if (error) {
-    console.error(`Received error:`, error);
-    return;
-  }
+client.request(options).then(results => {
 
   console.log(results);
+
+}).catch(error => {
+
+  console.log(`Received error:`, error);
 });
