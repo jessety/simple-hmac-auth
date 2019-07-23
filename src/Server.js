@@ -262,7 +262,7 @@ class SimpleHMACAuth {
 
   /**
    * Retrieve the secret for an API key we got.
-   * The server might have implemented this using callbacks or promises, so try both.
+   * The server might have implemented this using callbacks, promises, or just return a string - so try all 3 approaches.
    * @private
    * @param   {string}  apiKey API key we received from the client
    * @returns {Promise} Promise that we got a secret for that API key from userland
@@ -299,7 +299,12 @@ class SimpleHMACAuth {
         resolve(secret);
       };
 
-      const possiblePromise = this.secretForKey(apiKey, callback);
+      let possiblePromise = this.secretForKey(apiKey, callback);
+
+      // If the function returned a string directly, assume this is the API key we're looking for and wrap it in a promise.
+      if (typeof possiblePromise === 'string') {
+        possiblePromise = Promise.resolve(possiblePromise);
+      }
 
       if (possiblePromise instanceof Promise) {
 
