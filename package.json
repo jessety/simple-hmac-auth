@@ -1,6 +1,6 @@
 {
   "name": "simple-hmac-auth",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Library designed to make building APIs that use HMAC signatures simple.",
   "main": "index.js",
   "scripts": {
