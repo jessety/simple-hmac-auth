@@ -206,13 +206,20 @@ class Client {
 
         let value;
 
-        try {
-          value = JSON.stringify(query[key]);
-        } catch (e) {
-          const error = new AuthError(`Could not serialize parameter ${key}: ${e.message}`);
-          error.details = e;
-          fail(error);
-          return;
+        if ([ 'string', 'number', 'boolean' ].includes(typeof query[key])) {
+
+          value = String(query[key]);
+
+        } else {
+
+          try {
+            value = JSON.stringify(query[key]);
+          } catch (e) {
+            const error = new AuthError(`Could not serialize parameter ${key}: ${e.message}`);
+            error.details = e;
+            fail(error);
+            return;
+          }
         }
 
         value = encodeURIComponent(value);
