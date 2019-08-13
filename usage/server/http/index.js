@@ -45,6 +45,9 @@ http.createServer(async (request, response) => {
     const { apiKey, signature } = await auth.authenticate(request, true);
 
     console.log(`  Authentication successful. API Key "${apiKey}" signature "${signature}": ${request.method} ${request.url}`);
+    if (request.body) {
+      console.log(`  Body: ${request.body}`);
+    }
 
     response.writeHead(200);
     response.end('200');

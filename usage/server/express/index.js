@@ -75,7 +75,7 @@ app.use(SimpleHMACAuth.middleware({
 // Set up routes
 app.all('*', (request, response) => {
   console.log(`Routing request: ${request.method} ${request.url}`);
-  console.log(`Body:`, request.body);
+  console.log(`Body:`, request.rawBody);
   response.status(200).end('200');
 });
 
