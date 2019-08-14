@@ -12,32 +12,56 @@ const SimpleHMACAuth = require('../../index');
 class SampleClient extends SimpleHMACAuth.Client {
 
   constructor(apiKey, secret, settings) {
-    super(apiKey, secret, settings);
 
-    // Replace with the host / port of your service
-    this.settings.host = 'localhost';
-    this.settings.port = 8000;
-    this.settings.ssl = false;
+    if (typeof settings !== 'object') {
+      settings = {};
+    }
+
+    settings.host = 'localhost';
+    settings.port = 8000;
+    settings.ssl = false;
+
+    super(apiKey, secret, settings);
   }
 
   create(data, callback) {
-    return this.call('POST', '/items/', data, undefined, callback);
+    return this.request({
+      method: 'POST',
+      path: '/items/',
+      data
+    }, callback);
   }
 
   detail(id, parameters, callback) {
-    return this.call('GET', '/items/' + encodeURIComponent(id), undefined, parameters, callback);
+    return this.request({
+      method: 'GET',
+      path: `/items/${encodeURIComponent(id)}`,
+      query: parameters
+    }, callback);
   }
 
   query(parameters, callback) {
-    return this.call('GET', '/items/', undefined, parameters, callback);
+    return this.request({
+      method: 'GET',
+      path: '/items/',
+      query: parameters,
+      headers: { 'x-custom-header': 'custom header value' }
+    }, callback);
   }
 
   update(id, data, callback) {
-    return this.call('POST', '/items/' + encodeURIComponent(id), data, undefined, callback);
+    return this.request({
+      method: 'POST',
+      path: `/items/${encodeURIComponent(id)}`,
+      data
+    }, callback);
   }
 
   delete(id, callback) {
-    return this.call('DELETE', '/items/' + encodeURIComponent(id), undefined, undefined, callback);
+    return this.request({
+      method: 'DELETE',
+      path: `/items/${encodeURIComponent(id)}`
+    }, callback);
   }
 }
 

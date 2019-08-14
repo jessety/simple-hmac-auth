@@ -12,12 +12,17 @@ const SimpleHMACAuth = require('../../../index');
 class BearClient extends SimpleHMACAuth.Client {
 
   constructor(apiKey, secret, settings) {
-    super(apiKey, secret, settings);
+
+    if (typeof settings !== 'object') {
+      settings = {};
+    }
 
     // Replace with the host / port of your service
-    this.settings.host = 'localhost';
-    this.settings.port = 8000;
-    this.settings.ssl = false;
+    settings.host = 'localhost';
+    settings.port = 443;
+    settings.ssl = true;
+
+    super(apiKey, secret, settings);
   }
 
   create(data, callback) {

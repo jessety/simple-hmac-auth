@@ -90,13 +90,13 @@ class Client {
       settings.maxSockets = 250;
     }
 
-    this.settings = settings;
-
     if (settings.ssl) {
-      this.agent = new https.Agent({ maxSockets: this.settings.maxSockets });
+      this.agent = new https.Agent({ maxSockets: settings.maxSockets });
     } else {
-      this.agent = new http.Agent({ maxSockets: this.settings.maxSockets });
+      this.agent = new http.Agent({ maxSockets: settings.maxSockets });
     }
+
+    this._settings = settings;
   }
 
   /**
@@ -104,7 +104,7 @@ class Client {
    */
   log(...messages) {
 
-    if (this.settings.verbose !== true) {
+    if (this._settings.verbose !== true) {
       return;
     }
 
@@ -143,8 +143,8 @@ class Client {
    */
   request(call, callback) {
 
-    let { method, path, data, query } = call;
-    const { apiKey, secret, host, port, ssl, timeout } = this.settings;
+    let { method, headers, path, data, query } = call;
+    const { apiKey, secret, host, port, ssl, timeout } = this._settings;
 
     return new Promise((resolve, reject) => {
 
@@ -177,12 +177,16 @@ class Client {
       // The query, the body, Adnan Syed, etc.
 
       if (method === undefined) {
-        fail(new AuthError('Request did not include HTTP method'));
+        const error = new Error('Request did not include HTTP method');
+        error.code = 'EBADINPUT';
+        fail(error);
         return;
       }
 
       if (path === undefined) {
-        fail(new AuthError('Request did not include a path'));
+        const error = new Error('Request did not include a path');
+        error.code = 'EBADINPUT';
+        fail(error);
         return;
       }
 
@@ -192,10 +196,12 @@ class Client {
         query = {};
       }
 
-      const headers = {
-        authorization: `api-key ${apiKey}`,
-        date: new Date().toUTCString()
-      };
+      if (headers === undefined || headers === null || typeof headers !== 'object') {
+        headers = {};
+      }
+
+      headers.authorization = `api-key ${apiKey}`;
+      headers.date = new Date().toUTCString();
 
       // Sort query keys alphabetically
       const keys = Object.keys(query).sort();
@@ -215,7 +221,8 @@ class Client {
           try {
             value = JSON.stringify(query[key]);
           } catch (e) {
-            const error = new AuthError(`Could not serialize parameter ${key}: ${e.message}`);
+            const error = new Error(`Could not serialize parameter ${key}: ${e.message}`);
+            error.code = 'EBADINPUT';
             error.details = e;
             fail(error);
             return;
@@ -234,14 +241,29 @@ class Client {
 
       let bodyData;
 
-      // Serialize body
+      // Serialize body object
+      // If the body is anything but a string, serialize it as JSON
       if (data !== undefined) {
 
-        try {
-          bodyData = JSON.stringify(call.data);
-        } catch (e) {
-          fail(new AuthError(`Could not serialize input data: ${e.message}`, 'EBADINPUT'));
-          return;
+        if (typeof data === 'string') {
+
+          bodyData = data;
+
+        } else {
+
+          try {
+
+            bodyData = JSON.stringify(data);
+            headers['content-type'] = 'application/json';
+
+          } catch (e) {
+
+            const error = new Error(`Could not serialize input data: ${e.message}`);
+            error.code = 'EBADINPUT';
+            error.details = e;
+            fail(error);
+            return;
+          }
         }
       }
 
@@ -252,13 +274,12 @@ class Client {
       }
 
       if (bodyData !== undefined) {
-        headers['content-type'] = 'application/json';
         headers['content-length'] = Buffer.byteLength(bodyData);
       }
 
       if (secret !== undefined) {
 
-        const { algorithm } = this.settings;
+        const { algorithm } = this._settings;
 
         // First, be sure the client is set up with a valid algorithm
         if (!algorithms.includes(algorithm)) {
@@ -287,14 +308,14 @@ class Client {
         options.agent = this.agent;
       }
 
-      if (this.settings.verbose) {
+      if (this._settings.verbose) {
 
         let message = options.method + ' ' + options.host + ':' + options.port + options.path;
 
-        message += '\nHeaders: ' + JSON.stringify(headers);
+        message += '\n  Headers: ' + JSON.stringify(headers);
 
         if (bodyData !== undefined && bodyData.length < 500) {
-          message += '\nData: ' + bodyData;
+          message += '\n  Data: ' + bodyData;
         }
 
         this.log(message);
@@ -329,7 +350,12 @@ class Client {
           // Check for an error
           if (response.statusCode !== 200) {
 
-            const error = new AuthError(`Error ${response.statusCode}`);
+            let error = new Error(`Error ${response.statusCode}`);
+
+            // If this is HTTP 401, this is an authentication issue
+            if (response.statusCode === 401) {
+              error = new AuthError(`Error ${response.statusCode}`);
+            }
 
             if (object && object.hasOwnProperty('error') && typeof object.error === 'object') {
 
@@ -378,7 +404,9 @@ class Client {
 
         request.abort();
 
-        fail(new AuthError('The request has timed out.', 'ETIMEOUT'));
+        const error = new Error('The request has timed out.');
+        error.code = 'ETIMEOUT';
+        fail(error);
       });
 
       if (bodyData !== undefined) {
