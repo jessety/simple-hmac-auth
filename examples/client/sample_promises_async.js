@@ -1,6 +1,6 @@
 //
 //  Simple HMAC Auth
-//  /usage/client/sample_async.js
+//  /examples/client/sample_async.js
 //  Created by Jesse T Youngblood on 11/23/18 at 19:15
 //
 

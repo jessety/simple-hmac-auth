@@ -1,7 +1,7 @@
 //
 //  Simple HMAC Auth
 //  Direct, non-subclassed usage of the Client class
-//  /usage/client/direct_callbacks.js
+//  /examples/client/direct_callbacks.js
 //  Created by Jesse T Youngblood on 11/23/18 at 19:23
 //
 
