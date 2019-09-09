@@ -1,6 +1,6 @@
 //
 //  Simple HMAC Auth
-//  /usage/server/http/index.js
+//  /examples/server/index.js
 //  Created by Jesse Youngblood on 11/23/18 at 20:03
 //
 
@@ -9,7 +9,7 @@
 'use strict';
 
 const http = require('http');
-const SimpleHMACAuth = require('../../../index');
+const SimpleHMACAuth = require('../../src/index');
 
 const settings = {
   port: 8000,

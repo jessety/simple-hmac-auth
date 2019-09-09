@@ -1,6 +1,6 @@
 //
 //  Simple HMAC Auth
-//  /usage/client/sample_promises.js
+//  /examples/client/subclass/promises.js
 //  Created by Jesse T Youngblood on 11/23/18 at 19:14
 //
 

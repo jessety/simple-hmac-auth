@@ -1,14 +1,13 @@
 //
 //  Simple HMAC Auth
-//  /usage/client/ChickenClient.js
-//  Sample Client subclass, designed to be used with promises
-//  Also, use custom headers
+//  /usage/client/additional/ChickenClient.js
+//  Sample Client subclass that uses custom headers, designed to be used with promises
 //  Created by Jesse T Youngblood on 11/22/18 at 12:20pm
 //
 
 'use strict';
 
-const SimpleHMACAuth = require('../../../index');
+const SimpleHMACAuth = require('../../../src/index');
 
 class ChickenClient extends SimpleHMACAuth.Client {
 
@@ -18,7 +17,7 @@ class ChickenClient extends SimpleHMACAuth.Client {
       settings = {};
     }
 
-    settings.host = 'api.samplechickenservice.software';
+    settings.host = 'api.example.com';
     settings.port = 443;
     settings.ssl = true;
 

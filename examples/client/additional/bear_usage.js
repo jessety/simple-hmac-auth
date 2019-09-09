@@ -1,6 +1,6 @@
 //
 //  Simple HMAC Auth
-//  /usage/client/bear_usage.js
+//  /examples/client/additional/bear_usage.js
 //  Created by Jesse T Youngblood on 3/23/16 at 10:42pm
 //
 

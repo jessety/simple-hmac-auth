@@ -1,6 +1,6 @@
 //
 //  Simple HMAC Auth
-//  /usage/server/http_roundtrip/index.js
+//  /examples/roundtrip/index.js
 //  Created by Jesse Youngblood on 11/23/18 at 23:53
 //
 
@@ -9,7 +9,7 @@
 'use strict';
 
 const http = require('http');
-const SimpleHMACAuth = require('../../../index');
+const SimpleHMACAuth = require('../../src/index');
 
 const settings = {
   port: 8000,
