@@ -1,7 +1,7 @@
 //
 //  Simple HMAC Auth
 //  Direct, non-subclassed usage of the Client class
-//  /examples/client/direct_callbacks.js
+//  /examples/client/direct/promises.js
 //  Created by Jesse T Youngblood on 11/23/18 at 19:23
 //
 
@@ -9,7 +9,7 @@
 
 'use strict';
 
-const SimpleHMACAuth = require('../../index');
+const SimpleHMACAuth = require('../../../src/index');
 
 const client = new SimpleHMACAuth.Client('API_KEY', 'SECRET', {
   host: 'localhost',

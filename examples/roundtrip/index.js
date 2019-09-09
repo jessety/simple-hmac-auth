@@ -9,7 +9,7 @@
 'use strict';
 
 const http = require('http');
-const SimpleHMACAuth = require('../../index');
+const SimpleHMACAuth = require('../../src/index');
 
 const settings = {
   port: 8000,

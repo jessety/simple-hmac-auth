@@ -1,13 +1,13 @@
 //
 //  Simple HMAC Auth
-//  /usage/client/BearClient.js
+//  /examples/client/additional/BearClient.js
 //  Sample Client subclass. This class may be used with either callbacks or promises
 //  Created by Jesse T Youngblood on 3/23/16 at 10:42pm
 //
 
 'use strict';
 
-const SimpleHMACAuth = require('../../../index');
+const SimpleHMACAuth = require('../../../src/index');
 
 class BearClient extends SimpleHMACAuth.Client {
 
@@ -19,8 +19,8 @@ class BearClient extends SimpleHMACAuth.Client {
 
     // Replace with the host / port of your service
     settings.host = 'localhost';
-    settings.port = 443;
-    settings.ssl = true;
+    settings.port = 8000;
+    settings.ssl = false;
 
     super(apiKey, secret, settings);
   }

@@ -1,7 +1,7 @@
 //
 //  Simple HMAC Auth
-//  /examples/client/sample_callbacks.js
-//  Created by Jesse T Youngblood on 3/23/16 at 10:42pm
+//  /examples/client/subclass/promises.js
+//  Created by Jesse T Youngblood on 11/23/18 at 19:14
 //
 
 /* eslint no-console: off */
@@ -22,12 +22,11 @@ const query = {
   array: [ 1, 2, 3 ]
 };
 
-client.query(query, (error, results) => {
-
-  if (error) {
-    console.error(`Received error:`, error);
-    return;
-  }
+client.query(query).then(results => {
 
   console.log(results);
+
+}).catch(error => {
+
+  console.log(`Received error:`, error);
 });
