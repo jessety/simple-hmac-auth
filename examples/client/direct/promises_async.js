@@ -15,7 +15,13 @@ const client = new SimpleHMACAuth.Client('API_KEY', 'SECRET', {
   host: 'localhost',
   port: 8000,
   ssl: false,
-  verbose: true
+  verbose: true,
+  options: {
+    rejectUnauthorized: false
+  },
+  headers: {
+    'x-class-wide-header': 'test-123'
+  }
 });
 
 (async () => {

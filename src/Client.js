@@ -90,6 +90,14 @@ class Client {
       settings.maxSockets = 250;
     }
 
+    if (!settings.hasOwnProperty('headers') || typeof settings.headers !== 'object') {
+      settings.headers = {};
+    }
+
+    if (!settings.hasOwnProperty('options') || typeof settings.options !== 'object') {
+      settings.options = {};
+    }
+
     if (settings.ssl) {
       this.agent = new https.Agent({ maxSockets: settings.maxSockets });
     } else {
@@ -143,8 +151,8 @@ class Client {
    */
   request(call, callback) {
 
-    let { method, headers, path, data, query } = call;
-    const { apiKey, secret, host, port, ssl, timeout } = this._settings;
+    let { method, path, data, query, headers: callHeaders } = call;
+    const { apiKey, secret, host, port, ssl, timeout, headers: settingsHeaders, options: settingsOptions } = this._settings;
 
     return new Promise((resolve, reject) => {
 
@@ -196,8 +204,11 @@ class Client {
         query = {};
       }
 
-      if (headers === undefined || headers === null || typeof headers !== 'object') {
-        headers = {};
+      let headers = callHeaders || settingsHeaders || {};
+
+      if (settingsHeaders && callHeaders) {
+
+        headers = { ...settingsHeaders, ...callHeaders };
       }
 
       headers.authorization = `api-key ${apiKey}`;
@@ -296,15 +307,23 @@ class Client {
         headers.signature = `simple-hmac-auth ${algorithm} ${signature}`;
       }
 
-      const options = {
+      let options = {};
+
+      if (settingsOptions !== undefined) {
+        options = { ...settingsOptions };
+      }
+
+      options = {
+        ...options,
+        ...call,
         method,
         host,
         port,
         path: url,
-        headers: headers
+        headers
       };
 
-      if (this.agent !== undefined) {
+      if (options.agent === undefined && this.agent !== undefined) {
         options.agent = this.agent;
       }
 
