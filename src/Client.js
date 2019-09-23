@@ -204,11 +204,19 @@ class Client {
         query = {};
       }
 
-      let headers = callHeaders || settingsHeaders || {};
+      let headers = {};
 
       if (settingsHeaders && callHeaders) {
 
         headers = { ...settingsHeaders, ...callHeaders };
+
+      } else if (callHeaders) {
+
+        headers = { ...callHeaders };
+
+      } else if (settingsHeaders) {
+
+        headers = { ...settingsHeaders };
       }
 
       headers.authorization = `api-key ${apiKey}`;
