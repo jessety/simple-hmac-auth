@@ -18,10 +18,17 @@ class AuthError extends Error {
       this.code = code;
     }
   }
+
+  toJSON() {
+
+    // Explicitly pull non-enumerable properties
+    const { message } = this; // message, name, stack
+
+    // Pull all enumerable properties
+    return { ...this, message };
+  }
 }
 
-Object.defineProperty(AuthError.prototype, 'name', {
-  value: 'AuthError'
-});
+Object.defineProperty(AuthError.prototype, 'name', { value: 'AuthError' });
 
 module.exports = AuthError;
