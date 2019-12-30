@@ -374,28 +374,61 @@ class Client {
             // This may or may not be OK, depending on the API call
           }
 
-          // Check for an error
+          // If the response code isn't 200, throw an error
           if (response.statusCode !== 200) {
 
+            // Construct a basic error object. If we can't fill in the details, default to the status code
             let error = new Error(`Error ${response.statusCode}`);
 
             // If this is HTTP 401, this is an authentication issue
+            // Use an instance of the AuthError class instead of a generic Error
             if (response.statusCode === 401) {
               error = new AuthError(`Error ${response.statusCode}`);
             }
 
-            if (object && object.hasOwnProperty('error') && typeof object.error === 'object') {
+            if (typeof object === 'object' && object !== null && typeof object.error === 'object' && object.error !== null) {
+
+              // If the JSON response contains an "error" object, inherit it's properties
 
               for (let [ key, value ] of Object.entries(object.error)) {
 
-                // You can't overwrite the name of a JavaScript error
+                // You can't overwrite the name of a JavaScript error class instance
                 if (key === 'name') {
                   key = 'error_name';
                 }
 
                 error[key] = value;
               }
+
+            } else if (typeof object === 'object' && object !== null) {
+
+              // If the response doesn't contain an error object, assume the response itself is the error
+
+              for (let [ key, value ] of Object.entries(object)) {
+
+                // You can't overwrite the name of a JavaScript error class instance
+                if (key === 'name') {
+                  key = 'error_name';
+                }
+
+                error[key] = value;
+              }
+
+            } else if (typeof object === 'string') {
+
+              // If the response data is just a JSON-encoded string, use that response as the error message
+
+              error.message = responseData;
+
+            } else if (responseData === 'string') {
+
+              // If the response data is just a string, use that response as the error message
+
+              error.message = responseData;
             }
+
+            // Don't return a stack that points to this function, since that isn't particularly helpful
+            delete error.stack;
 
             fail(error);
             return;
