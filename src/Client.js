@@ -420,7 +420,7 @@ class Client {
 
               error.message = responseData;
 
-            } else if (responseData === 'string') {
+            } else if (typeof responseData === 'string') {
 
               // If the response data is just a string, use that response as the error message
 
