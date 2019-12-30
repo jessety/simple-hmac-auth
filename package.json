@@ -1,31 +1,32 @@
 {
   "name": "simple-hmac-auth",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "Library designed to make building APIs that use HMAC signatures simple.",
-  "main": "src/index.js",
-  "scripts": {
-    "lint": "node ./node_modules/eslint/bin/eslint.js .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "keywords": [
+    "authentication",
+    "request signing",
+    "request signatures",
+    "hmac",
+    "signatures",
+    "request",
+    "signing",
+    "api",
+    "api security"
+  ],
+  "homepage": "https://github.com/jessety/simple-hmac-auth#readme",
+  "bugs": {
+    "url": "https://github.com/jessety/simple-hmac-auth/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jessety/simple-hmac-auth.git"
   },
-  "keywords": [
-    "authentication",
-    "request signing",
-    "hmac",
-    "signatures",
-    "request",
-    "signing",
-    "api"
-  ],
-  "author": "Jesse T Youngblood",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/jessety/simple-hmac-auth/issues"
+  "author": "Jesse T Youngblood",
+  "main": "src/index.js",
+  "scripts": {
+    "lint": "node ./node_modules/eslint/bin/eslint.js ."
   },
-  "homepage": "https://github.com/jessety/simple-hmac-auth#readme",
   "dependencies": {},
   "devDependencies": {
     "eslint": "^5.16.0"
