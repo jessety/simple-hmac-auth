@@ -22,7 +22,7 @@ class SimpleHMACAuth {
    * @param {boolean}  [settings.verbose=false]                If true, log debug information to the console
    * @param {number}   [settings.secretForKeyTimeout=10000]    How long until timing out on the secretForKey function
    * @param {number}   [settings.permittedTimestampSkew=60000] How far away from the current time to allow requests from
-   * @param {string}   [settings.bodySizeLimit='5mb']          Default size limit for request body parsing
+   * @param {number}   [settings.bodySizeLimit=10]             Default size limit for request body parsing, in megabytes
    */
   constructor(settings) {
 
@@ -30,7 +30,7 @@ class SimpleHMACAuth {
       settings = {};
     }
 
-    if (!settings.hasOwnProperty('verbose')) {
+    if (typeof settings.verbose !== 'boolean') {
       settings.verbose = false;
     }
 
@@ -41,13 +41,15 @@ class SimpleHMACAuth {
 
     if (!settings.hasOwnProperty('permittedTimestampSkew') || typeof settings.permittedTimestampSkew !== 'number') {
 
-      settings.permittedTimestampSkew = 60 * 1000; // 10 seconds
+      settings.permittedTimestampSkew = 60 * 1000; // 60 seconds
     }
 
-    if (!settings.hasOwnProperty('bodySizeLimit') || typeof settings.bodySizeLimit !== 'string') {
+    if (!settings.hasOwnProperty('bodySizeLimit') || typeof settings.bodySizeLimit !== 'number') {
 
-      settings.bodySizeLimit = '5mb';
+      settings.bodySizeLimit = 10;
     }
+
+    settings.bodySizeLimitBytes = settings.bodySizeLimit * 1000000;
 
     if (typeof settings.secretForKey === 'function') {
 
@@ -55,19 +57,6 @@ class SimpleHMACAuth {
     }
 
     this.settings = settings;
-  }
-
-  /**
-   * Log debug messages to the console, if 'verbose' is enabled.
-   */
-  log(...messages) {
-
-    if (!this.settings.verbose) {
-      return;
-    }
-
-    // eslint-disable-next-line no-console
-    console.log(`SimpleHMACAuth`, ...messages);
   }
 
   /**
@@ -118,12 +107,14 @@ class SimpleHMACAuth {
 
       } catch (error) {
 
-        this.log(`Failed to load secret for API key "${apiKey}"`);
-
         if (error === undefined) {
 
           reject(new AuthError(`Internal failure while attempting to locate secret for API key "${apiKey}"`, `INTERNAL_ERROR_SECRET_DISCOVERY`));
           return;
+        }
+
+        if (error.code === undefined) {
+          error.code = 'INTERNAL_ERROR_SECRET_DISCOVERY';
         }
 
         reject(error);
@@ -138,9 +129,9 @@ class SimpleHMACAuth {
 
       request.secret = secret;
 
-      if (!request.headers.hasOwnProperty('authorization')) {
+      if (!request.headers.hasOwnProperty('signature')) {
 
-        reject(new AuthError(`Missing authorization. Please sign all incoming requests with the 'authorization' header.`, `AUTHORIZATION_HEADER_MISSING`));
+        reject(new AuthError(`Missing signature. Please sign all incoming requests with the 'signature' header.`, `SIGNATURE_HEADER_MISSING`));
         return;
       }
 
@@ -277,6 +268,7 @@ class SimpleHMACAuth {
         error.details = `Please implement a 'secretForKey' delegate function`;
 
         reject(error);
+        return;
       }
 
       // Give up after a certain amount of time.
@@ -287,28 +279,31 @@ class SimpleHMACAuth {
 
       }, this.settings.secretForKeyTimeout);
 
-      const callback = (error, secret) => {
 
-        clearTimeout(timer);
+      // Check if this function expects a callback
+      if (this.secretForKey.length === 2) {
 
-        if (error || secret === undefined) {
-          reject(error);
-          return;
-        }
+        const callback = (error, secret) => {
 
-        resolve(secret);
-      };
+          clearTimeout(timer);
 
-      let possiblePromise = this.secretForKey(apiKey, callback);
+          if (error || secret === undefined) {
+            reject(error);
+            return;
+          }
 
-      // If the function returned a string directly, assume this is the API key we're looking for and wrap it in a promise.
-      if (typeof possiblePromise === 'string') {
-        possiblePromise = Promise.resolve(possiblePromise);
+          resolve(secret);
+        };
+
+        this.secretForKey(apiKey, callback);
+        return;
       }
 
-      if (possiblePromise instanceof Promise) {
+      const returnValue = this.secretForKey(apiKey);
 
-        possiblePromise.then(secret => {
+      if (returnValue instanceof Promise) {
+
+        returnValue.then(secret => {
 
           clearTimeout(timer);
           resolve(secret);
@@ -318,7 +313,13 @@ class SimpleHMACAuth {
           clearTimeout(timer);
           reject(error);
         });
+
+        return;
       }
+
+      // If the secretForKey function does not accept a callback and the return value was not a promise,
+      // --assume that the resulting value is the return
+      resolve(returnValue);
     });
   }
 
@@ -330,21 +331,30 @@ class SimpleHMACAuth {
    */
   _rawBodyForRequest(request) {
 
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
 
       if (request.rawBody !== undefined && request.rawBody !== null) {
         resolve(request.rawBody);
         return;
       }
 
-      let data = '';
+      const { bodySizeLimit, bodySizeLimitBytes } = this.settings;
+
+      const chunks = [];
 
       request.on('data', chunk => {
-        data += chunk.toString();
+
+        chunks.push(chunk);
+
+        if (Buffer.concat(chunks).byteLength >= bodySizeLimitBytes) {
+          const error = new Error(`Maximum file length (${bodySizeLimit}mb) exceeded.`);
+          error.code = 'ETOOLONG';
+          reject(error);
+        }
       });
 
       request.on('end', () => {
-        resolve(data);
+        resolve(Buffer.concat(chunks).toString());
       });
     });
   }

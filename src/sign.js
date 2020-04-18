@@ -24,8 +24,8 @@ const algorithms = [
  */
 function sign(canonical, secret, algorithm) {
 
-  if (!algorithm.includes(algorithm)) {
-    return;
+  if (!algorithms.includes(algorithm)) {
+    throw new Error(`Invalid algorithm: "${algorithm}"`);
   }
 
   return crypto.createHmac(algorithm, secret).update(canonical).digest('hex');
