@@ -1,16 +1,22 @@
-simple-hmac-auth
-=============
+# simple-hmac-auth
 
-Specification and Node library designed to make building APIs that use HMAC signatures simple.
+HTTP authentication specification and Node library designed to make building APIs that use HMAC signatures simple.
 
-Includes a server component, Express middleware, and a client.
+[![test](https://github.com/jessety/simple-hmac-auth/workflows/test/badge.svg)](https://github.com/jessety/simple-hmac-auth/actions?query=workflow%3Atest)
+[![lint](https://github.com/jessety/simple-hmac-auth/workflows/lint/badge.svg)](https://github.com/jessety/simple-hmac-auth/actions?query=workflow%3Alint)
+[![license](https://img.shields.io/github/license/jessety/simple-hmac-auth.svg)](https://github.com/jessety/simple-hmac-auth/blob/master/LICENSE)
+[![npm](https://img.shields.io/npm/v/simple-hmac-auth.svg)](https://www.npmjs.com/package/simple-hmac-auth)
 
 - [Specification](#specification)
 - [Server](#server)
 - [Client](#client)
-  - [Client](#client-class)
-  - [Client Subclass](#client-subclass)
+  - [Usage](#using-client)
+  - [Subclassing](#subclassing-client)
 - [Additional Implementations](#additional-implementations)
+  - [Koa Middleware](https://github.com/jessety/simple-hmac-auth-koa)
+  - [Express Middleware](https://github.com/jessety/simple-hmac-auth-express)
+  - [iOS Client](https://github.com/jessety/simple-hmac-auth-ios/)
+  - [PHP Client](https://github.com/jessety/simple-hmac-auth-php/)
 
 ## Specification
 
@@ -204,7 +210,7 @@ http.createServer((request, response) => {
 
 There are two ways to use the client class: directly, or by subclassing to make your own client. It supports using callbacks as well as promises, as well as serializing JavaScript objects as the query string or request.
 
-#### Using Client Directly
+#### Using Client
 
 To point it to your service, instantiate it with your host, port, and if you've enabled SSL yet.
 
@@ -364,10 +370,10 @@ client.query({ test: true }, (error, results) => {
 
 Middleware for Express and Koa that leverage the implementation in this client exist in their own repositories. Compatible clients for iOS and PHP have also been implemented.
 
-- [Express Middleware](https://github.com/jessety/simple-hmac-auth-express)
 - [Koa Middleware](https://github.com/jessety/simple-hmac-auth-koa)
-- [iOS](https://github.com/jessety/simple-hmac-auth-ios/)
-- [PHP](https://github.com/jessety/simple-hmac-auth-php/)
+- [Express Middleware](https://github.com/jessety/simple-hmac-auth-express)
+- [iOS Client](https://github.com/jessety/simple-hmac-auth-ios/)
+- [PHP Client](https://github.com/jessety/simple-hmac-auth-php/)
 
 ## License
 
