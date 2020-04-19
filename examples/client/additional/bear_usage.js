@@ -18,77 +18,73 @@ const settings = {
 
 const client = new BearClient(settings.apiKey, settings.secret, { verbose: true });
 
-function test() {
+async function test() {
 
   console.log('Testing Bears API!');
 
-  return new Promise(async (resolve, reject) => {
+  try {
 
-    try {
+    const createdTime = new Date().getTime() / 1000;
 
-      const createdTime = new Date().getTime() / 1000;
+    console.log(' === Creating a new bear');
 
-      console.log(' === Creating a new bear');
+    // const bear =
+    await client.create({
+      name: 'Red Panda',
+      size: 'small and unthreatening',
+      color: 'red',
+      createdTime: createdTime
+    });
 
-      // const bear =
-      await client.create({
-        name: 'Red Panda',
-        size: 'small and unthreatening',
-        color: 'red',
-        createdTime: createdTime
-      });
+    const bear = {};
 
-      const bear = {};
-
-      if (bear.id === undefined) {
-        bear.id = 66;
-      }
-
-      const updatedTime = new Date().getTime() / 1000;
-
-      // Put some edge cases in the POST body
-      const update = {
-        updatedTime: updatedTime,
-        diet: '🍕',
-
-        string: 'string',
-        boolean: true,
-        number: 42,
-        object: { contents: true },
-        array: [ 1, 2, 3 ],
-        'spaces in key': true,
-        spacesInValue: 'present here',
-
-        Norway: 'ø',
-        Spain: 'ñ',
-        Burger: '🍔'
-      };
-
-      console.log(' === Updating bear');
-
-      await client.update(bear.id, update);
-
-      console.log(' === Querying for the bear we just made');
-
-      await client.detail(bear.id);
-
-      console.log(' === Uploading a file');
-
-      await uploadFile(bear.id);
-
-      console.log(' === Deleting our bear');
-
-      await client.delete(bear.id);
-
-      console.log(' === Done!');
-
-      resolve();
-
-    } catch (e) {
-
-      reject(e);
+    if (bear.id === undefined) {
+      bear.id = 66;
     }
-  });
+
+    const updatedTime = new Date().getTime() / 1000;
+
+    // Put some edge cases in the POST body
+    const update = {
+      updatedTime: updatedTime,
+      diet: '🍕',
+
+      string: 'string',
+      boolean: true,
+      number: 42,
+      object: { contents: true },
+      array: [1, 2, 3],
+      'spaces in key': true,
+      spacesInValue: 'present here',
+
+      Norway: 'ø',
+      Spain: 'ñ',
+      Burger: '🍔'
+    };
+
+    console.log(' === Updating bear');
+
+    await client.update(bear.id, update);
+
+    console.log(' === Querying for the bear we just made');
+
+    await client.detail(bear.id);
+
+    console.log(' === Uploading a file');
+
+    await uploadFile(bear.id);
+
+    console.log(' === Deleting our bear');
+
+    await client.delete(bear.id);
+
+    console.log(' === Done!');
+
+  } catch (error) {
+
+    console.log('Caught error', error);
+    throw error;
+  }
 }
 
 function uploadFile(id) {

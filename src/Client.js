@@ -36,7 +36,7 @@ class Client {
       throw new AuthError('Client created with invalid settings.');
     }
 
-    if (!settings.hasOwnProperty('verbose') || typeof settings.verbose !== 'boolean') {
+    if (typeof settings.verbose !== 'boolean') {
       settings.verbose = false;
     }
 
@@ -63,15 +63,15 @@ class Client {
       settings.secret = secret;
     }
 
-    if (!settings.hasOwnProperty('host') || typeof settings.host !== 'string') {
+    if (typeof settings.host !== 'string') {
       settings.host = 'localhost';
     }
 
-    if (!settings.hasOwnProperty('ssl') || typeof settings.ssl !== 'boolean') {
+    if (typeof settings.ssl !== 'boolean') {
       settings.ssl = false;
     }
 
-    if (!settings.hasOwnProperty('port') || typeof settings.port !== 'number') {
+    if (typeof settings.port !== 'number') {
 
       settings.port = 80;
 
@@ -80,7 +80,7 @@ class Client {
       }
     }
 
-    if (!settings.hasOwnProperty('algorithm') || typeof settings.algorithm !== 'string') {
+    if (typeof settings.algorithm !== 'string') {
       settings.algorithm = 'sha256';
     }
 
@@ -88,19 +88,19 @@ class Client {
       throw new Error(`Invalid HMAC algorithm: "${settings.algorithm}". The only supported algorithms are: "${algorithms.join('", "')}"`);
     }
 
-    if (!settings.hasOwnProperty('timeout') || typeof settings.timeout !== 'number') {
+    if (typeof settings.timeout !== 'number') {
       settings.timeout = 7500;
     }
 
-    if (!settings.hasOwnProperty('maxSockets') || typeof settings.maxSockets !== 'number') {
+    if (typeof settings.maxSockets !== 'number') {
       settings.maxSockets = 250;
     }
 
-    if (!settings.hasOwnProperty('headers') || typeof settings.headers !== 'object') {
+    if (typeof settings.headers !== 'object') {
       settings.headers = {};
     }
 
-    if (!settings.hasOwnProperty('options') || typeof settings.options !== 'object') {
+    if (typeof settings.options !== 'object') {
       settings.options = {};
     }
 

@@ -500,7 +500,7 @@ describe('Client class', () => {
 
     const spy = jest.spyOn(client, 'log').mockImplementation();
 
-    await client.request({ method: 'POST', path: '/test', data: { test: true } });
+    await client.request({ method: 'POST', path: '/test', data: { test: true }});
 
     server.close();
 

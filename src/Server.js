@@ -34,17 +34,17 @@ class SimpleHMACAuth {
       settings.verbose = false;
     }
 
-    if (!settings.hasOwnProperty('secretForKeyTimeout') || typeof settings.secretForKeyTimeout !== 'number') {
+    if (typeof settings.secretForKeyTimeout !== 'number') {
 
       settings.secretForKeyTimeout = 10 * 1000; // 10 seconds
     }
 
-    if (!settings.hasOwnProperty('permittedTimestampSkew') || typeof settings.permittedTimestampSkew !== 'number') {
+    if (typeof settings.permittedTimestampSkew !== 'number') {
 
       settings.permittedTimestampSkew = 60 * 1000; // 60 seconds
     }
 
-    if (!settings.hasOwnProperty('bodySizeLimit') || typeof settings.bodySizeLimit !== 'number') {
+    if (typeof settings.bodySizeLimit !== 'number') {
 
       settings.bodySizeLimit = 10;
     }
@@ -66,147 +66,128 @@ class SimpleHMACAuth {
    * @returns {Promise} - Promise that resolves if the request authenticates, or rejects if it is not
    */
   async authenticate(request, data) {
+    // Let's just assume the worst until we have reason to believe otherwise
+    request.authenticated = false;
 
-    return new Promise(async (resolve, reject) => {
+    // Make sure we have the full raw body of a request
 
-      // Let's just assume the worst until we have reason to believe otherwise
-      request.authenticated = false;
+    // If instead of including a body (or omitting one) 'true' is sent, manually process the raw body for this request.
+    if (data === true) {
 
-      // Make sure we have the full raw body of a request
+      data = await this._rawBodyForRequest(request).catch(error => {
+        throw error;
+      });
 
-      // If instead of including a body (or omitting one) 'true' is sent, manually process the raw body for this request.
-      if (data === true) {
+      request.body = data;
+    }
 
-        try {
+    // Pull the API key from the request
+    const apiKey = this._apiKeyForRequest(request);
 
-          data = await this._rawBodyForRequest(request);
+    if (apiKey === undefined) {
 
-          request.body = data;
+      throw new AuthError(`Missing API Key`, `API_KEY_MISSING`);
+    }
 
-        } catch (e) {
+    request.apiKey = apiKey;
 
-          reject(e);
-        }
+    let secret;
+    try {
+
+      secret = await this._secretForKey(apiKey);
+
+    } catch (error) {
+
+      if (error === undefined) {
+
+        throw new AuthError(`Internal failure while attempting to locate secret for API key "${apiKey}"`, `INTERNAL_ERROR_SECRET_DISCOVERY`);
       }
 
-      // Pull the API key from the request
-      const apiKey = this._apiKeyForRequest(request);
-
-      if (apiKey === undefined) {
-
-        reject(new AuthError(`Missing API Key`, `API_KEY_MISSING`));
-        return;
+      if (error.code === undefined) {
+        error.code = 'INTERNAL_ERROR_SECRET_DISCOVERY';
       }
 
-      request.apiKey = apiKey;
+      throw error;
+    }
 
-      let secret;
-      try {
+    if (secret === undefined) {
 
-        secret = await this._secretForKey(apiKey);
+      throw new AuthError(`Unrecognized API key: ${apiKey}`, `API_KEY_UNRECOGNIZED`);
+    }
 
-      } catch (error) {
+    request.secret = secret;
 
-        if (error === undefined) {
+    if (request.headers.signature === undefined) {
 
-          reject(new AuthError(`Internal failure while attempting to locate secret for API key "${apiKey}"`, `INTERNAL_ERROR_SECRET_DISCOVERY`));
-          return;
-        }
+      throw new AuthError(`Missing signature. Please sign all incoming requests with the 'signature' header.`, `SIGNATURE_HEADER_MISSING`);
+    }
 
-        if (error.code === undefined) {
-          error.code = 'INTERNAL_ERROR_SECRET_DISCOVERY';
-        }
+    if (request.headers.date === undefined) {
 
-        reject(error);
-        return;
-      }
+      throw new AuthError(`Missing timestamp. Please timestamp all incoming requests by including 'date' header.`, `DATE_HEADER_MISSING`);
+    }
 
-      if (secret === undefined) {
+    // First, confirm that the 'date' header is recent enough
+    const requestTime = new Date(request.headers.date);
+    const now = new Date();
 
-        reject(new AuthError(`Unrecognized API key: ${apiKey}`, `API_KEY_UNRECOGNIZED`));
-        return;
-      }
+    // If this request was made over [60] seconds ago, ignore it
+    if (now - requestTime > this.settings.permittedTimestampSkew) {
 
-      request.secret = secret;
+      const error = new AuthError(`Timestamp is too old. Recieved: "${request.headers.date}" current time: "${now.toUTCString()}"`, `DATE_HEADER_INVALID`);
+      error.time = now.toUTCString();
 
-      if (!request.headers.hasOwnProperty('signature')) {
+      throw error;
+    }
 
-        reject(new AuthError(`Missing signature. Please sign all incoming requests with the 'signature' header.`, `SIGNATURE_HEADER_MISSING`));
-        return;
-      }
+    // Great! It looks like this is a recent request, and probably not a replay attack.
+    // We expect the signature header to contain a string like this:
+    // 'simple-hmac-auth sha256 148c033512ad0c90e95ede5166089dcdf3b6c3b1b31da150e51484984300dcf2'
 
-      if (!request.headers.hasOwnProperty('date')) {
+    const signatureComponents = request.headers.signature.split(' ');
 
-        reject(new AuthError(`Missing timestamp. Please timestamp all incoming requests by including 'date' header.`, `DATE_HEADER_MISSING`));
-        return;
-      }
+    if (signatureComponents.length < 3) {
 
-      // First, confirm that the 'date' header is recent enough
-      const requestTime = new Date(request.headers.date);
-      const now = new Date();
+      const error = new AuthError(`Signature header is improperly formatted: "${request.headers.signature}"`, `SIGNATURE_HEADER_INVALID`);
+      error.details = `It should look like: "simple-hmac-auth sha256 a42d7b09a929b997aa8e6973bdbd5ca94326cbffc3d06a557d9ed36c6b80d4ff"`;
 
-      // If this request was made over [60] seconds ago, ignore it
-      if (now - requestTime > this.settings.permittedTimestampSkew) {
+      throw error;
+    }
 
-        const error = new AuthError(`Timestamp is too old. Recieved: "${request.headers.date}" current time: "${now.toUTCString()}"`, `DATE_HEADER_INVALID`);
-        error.time = now.toUTCString();
-        reject(error);
-        return;
-      }
+    const [protocol, algorithm, signature] = signatureComponents;
 
-      // Great! It looks like this is a recent request, and probably not a replay attack.
-      // We expect the signature header to contain a string like this:
-      // 'simple-hmac-auth sha256 148c033512ad0c90e95ede5166089dcdf3b6c3b1b31da150e51484984300dcf2'
+    if (protocol !== 'simple-hmac-auth') {
 
-      const signatureComponents = request.headers.signature.split(' ');
+      const error = new AuthError(`Signature header included unsupported protocol version: "${protocol}". Ensure the client and server are using the latest signature library.`, `SIGNATURE_HEADER_INVALID`);
 
-      if (signatureComponents.length < 3) {
+      error.details = `Expected "simple-hmac-auth"`;
 
-        const error = new AuthError(`Signature header is improperly formatted: "${request.headers.signature}"`, `SIGNATURE_HEADER_INVALID`);
-        error.details = `It should look like: "simple-hmac-auth sha256 a42d7b09a929b997aa8e6973bdbd5ca94326cbffc3d06a557d9ed36c6b80d4ff"`;
+      throw error;
+    }
 
-        reject(error);
-        return;
-      }
+    if (!algorithms.includes(algorithm)) {
 
-      const [ protocol, algorithm, signature ] = signatureComponents;
+      throw new AuthError(`Authorization header send invalid algorithm: "${algorithm}". The only supported hmac algorithms are: "${algorithms.join('", "')}"`, `HMAC_ALGORITHM_INVALID`);
+    }
 
-      if (protocol !== 'simple-hmac-auth') {
+    const requestURL = url.parse(request.url);
 
-        const error = new AuthError(`Signature header included unsupported protocol version: "${protocol}". Ensure the client and server are using the latest signature library.`, `SIGNATURE_HEADER_INVALID`);
+    const canonical = canonicalize(request.method, requestURL.pathname, requestURL.query, request.headers, data);
 
-        error.details = `Expected "simple-hmac-auth"`;
+    const calculatedSignature = sign(canonical, secret, algorithm);
 
-        reject(error);
-        return;
-      }
+    request.signature = calculatedSignature;
+    request.signatureExpected = calculatedSignature;
 
-      if (!algorithms.includes(algorithm)) {
+    if (signature !== calculatedSignature) {
 
-        reject(new AuthError(`Authorization header send invalid algorithm: "${algorithm}". The only supported hmac algorithms are: "${algorithms.join('", "')}"`, `HMAC_ALGORITHM_INVALID`));
-        return;
-      }
+      throw new AuthError(`Signature is invalid.`, `SIGNATURE_INVALID`);
+    }
 
-      const requestURL = url.parse(request.url);
+    // It worked!
+    request.authenticated = true;
 
-      const canonical = canonicalize(request.method, requestURL.pathname, requestURL.query, request.headers, data);
-
-      const calculatedSignature = sign(canonical, secret, algorithm);
-
-      request.signature = calculatedSignature;
-      request.signatureExpected = calculatedSignature;
-
-      if (signature !== calculatedSignature) {
-
-        reject(new AuthError(`Signature is invalid.`, `SIGNATURE_INVALID`));
-        return;
-      }
-
-      // It worked!
-      request.authenticated = true;
-
-      resolve({ apiKey, secret, signature });
-    });
+    return { apiKey, secret, signature };
   }
 
   /**
@@ -219,7 +200,7 @@ class SimpleHMACAuth {
 
     let apiKey;
 
-    if (request.headers.hasOwnProperty('authorization')) {
+    if (request.headers.authorization !== undefined) {
 
       // The authorization header should look like this:
       // api-key sampleKey
@@ -233,7 +214,7 @@ class SimpleHMACAuth {
 
       let query = {};
 
-      if (request.hasOwnProperty('query')) {
+      if (request.query !== undefined) {
 
         query = request.query;
 
@@ -242,7 +223,7 @@ class SimpleHMACAuth {
         query = querystring.parse(url.parse(request.url).query);
       }
 
-      if (query.apiKey !== undefined) {
+      if (query !== undefined && query.apiKey !== undefined) {
 
         apiKey = query.apiKey;
       }

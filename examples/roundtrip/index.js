@@ -25,7 +25,7 @@ const auth = new SimpleHMACAuth.Server({ verbose: true });
 // Required. Execute callback with either an error, or an API key.
 auth.secretForKey = (apiKey, callback) => {
 
-  if (settings.secretsForAPIKeys.hasOwnProperty(apiKey)) {
+  if (settings.secretsForAPIKeys[apiKey] !== undefined) {
 
     callback(null, settings.secretsForAPIKeys[apiKey]);
     return;
