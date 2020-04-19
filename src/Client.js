@@ -40,6 +40,8 @@ class Client {
       settings.verbose = false;
     }
 
+    this._settings = settings;
+
     if (apiKey === undefined || apiKey === null || apiKey === '' || typeof apiKey !== 'string') {
 
       throw new AuthError('Client created without an API key.');
@@ -54,7 +56,7 @@ class Client {
 
     } else if (secret === '' || typeof secret !== 'string') {
 
-      throw new AuthError('Client created with an invalid secret.');
+      throw new Error(`Invalid secret: "${secret}"`);
 
     } else {
 
@@ -80,6 +82,10 @@ class Client {
 
     if (!settings.hasOwnProperty('algorithm') || typeof settings.algorithm !== 'string') {
       settings.algorithm = 'sha256';
+    }
+
+    if (!algorithms.includes(settings.algorithm)) {
+      throw new Error(`Invalid HMAC algorithm: "${settings.algorithm}". The only supported algorithms are: "${algorithms.join('", "')}"`);
     }
 
     if (!settings.hasOwnProperty('timeout') || typeof settings.timeout !== 'number') {
@@ -156,16 +162,8 @@ class Client {
 
     return new Promise((resolve, reject) => {
 
-      let done = false;
-
       // Create one function to handle all errors
       const fail = error => {
-
-        if (done) {
-          return;
-        }
-
-        done = true;
 
         if (typeof callback === 'function') {
 
@@ -300,13 +298,6 @@ class Client {
 
         const { algorithm } = this._settings;
 
-        // First, be sure the client is set up with a valid algorithm
-        if (!algorithms.includes(algorithm)) {
-
-          fail(new AuthError(`Configured using invalid hmac algorithm: "${algorithm}". The only supported hmac algorithms are: "${algorithms.join('", "')}"`, `HMAC_ALGORITHM_INVALID`));
-          return;
-        }
-
         const canonical = canonicalize(method, path, queryString, headers, bodyData);
 
         const signature = sign(canonical, secret, algorithm);
@@ -418,7 +409,7 @@ class Client {
 
               // If the response data is just a JSON-encoded string, use that response as the error message
 
-              error.message = responseData;
+              error.message = object;
 
             } else if (typeof responseData === 'string') {
 
@@ -433,12 +424,6 @@ class Client {
             fail(error);
             return;
           }
-
-          if (done) {
-            return;
-          }
-
-          done = true;
 
           // The call was successful. Maybe there's response data, maybe not.
 
