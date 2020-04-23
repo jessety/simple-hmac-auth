@@ -2,10 +2,9 @@
 
 HTTP authentication specification and Node library designed to make building APIs that use HMAC signatures simple.
 
-[![test](https://github.com/jessety/simple-hmac-auth/workflows/test/badge.svg)](https://github.com/jessety/simple-hmac-auth/actions?query=workflow%3Atest)
-[![lint](https://github.com/jessety/simple-hmac-auth/workflows/lint/badge.svg)](https://github.com/jessety/simple-hmac-auth/actions?query=workflow%3Alint)
-[![license](https://img.shields.io/github/license/jessety/simple-hmac-auth.svg)](https://github.com/jessety/simple-hmac-auth/blob/master/LICENSE)
+[![ci](https://github.com/jessety/simple-hmac-auth/workflows/ci/badge.svg)](https://github.com/jessety/simple-hmac-auth/actions)
 [![npm](https://img.shields.io/npm/v/simple-hmac-auth.svg)](https://www.npmjs.com/package/simple-hmac-auth)
+[![license](https://img.shields.io/github/license/jessety/simple-hmac-auth.svg)](https://github.com/jessety/simple-hmac-auth/blob/master/LICENSE)
 
 - [Specification](#specification)
 - [Server](#server)
