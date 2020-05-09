@@ -25,11 +25,12 @@
   "author": "Jesse T Youngblood",
   "main": "src/index.js",
   "scripts": {
-    "lint": "eslint .",
+    "lint": "eslint . && editorconfig-checker",
     "test": "jest"
   },
   "dependencies": {},
   "devDependencies": {
+    "editorconfig-checker": "^3.0.4",
     "eslint": "^6.8.0",
     "jest": "^25.3.0"
   }
