@@ -31,7 +31,7 @@ The client's authenticity is confirmed by their continued ability to produce sig
 
 Request signatures are designed to be used in conjunction with HTTPS.
 
-#### Headers
+### Headers
 
 Each request requires three headers: `date`, `authorization` and `signature`. If the HTTP request contains a body, the `content-length` and `content-type` headers are also required.
 
@@ -53,18 +53,18 @@ A correctly signed HTTP request may look like this:
   signature: simple-hmac-auth sha256 64b0a4bd0cbb45c5b2fe8b1e4a15419b6018a9a90eb19046247af6a9e8896bd3
 ```
 
-#### Signature
+### Signature
 
 To calculate the signature, the client first needs to create a string representation of the request. When the server receives an authenticated request it computes the the signature and compares it with the signature provided by the client. Therefore, the client must create a string representation of the request in the exact same way as the server. This is called "canonicalization."
 
 The format of a canonical representation of a request is:
 
 ```text
-     HTTP Verb + \n
-     URI + \n
-     Canonical query string + \n
-     Canonically formatted signed headers + \n
-     Hashed body payload
+  HTTP Verb + \n
+  URI + \n
+  Canonical query string + \n
+  Canonically formatted signed headers + \n
+  Hashed body payload
 ```
 
 The canonical representations of these elements are as follows
@@ -127,6 +127,7 @@ Middleware implementations for both [Express](https://github.com/jessety/simple-
 #### Example
 
 First, instantiate the class.
+
 ```javascript
 const SimpleHMACAuth = require('simple-hmac-auth');
 
@@ -190,7 +191,7 @@ Alternatively, Sending a boolean `true` as the 2nd parameter instead of the raw 
 ```javascript
 http.createServer((request, response) => {
 
-   try {
+  try {
 
       await auth.authenticate(request, true);
 
@@ -263,13 +264,14 @@ client.request(options, (error, results) => {
 ```
 
 Promise
+
 ```javascript
 client.request(options).then(results => {
-  
+
   console.log(results);
-  
+
 }).catch(error => {
-  
+
   console.log('Error:', error);
 });
 ```
@@ -280,7 +282,7 @@ Async promise
 try {
 
   const results = await client.request(options);
-  
+
   console.log(results);
 
 } catch (error) {
@@ -343,7 +345,7 @@ Just like its parent class, this example subclass implements both promises and c
 try {
 
   const results = await client.query({ test: true });
-  
+
   console.log(results);
 
 } catch (error) {

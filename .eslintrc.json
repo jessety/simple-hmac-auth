@@ -42,8 +42,8 @@
     "prefer-destructuring": [ "warn", {
       "VariableDeclarator": { "array": true, "object": true },
       "AssignmentExpression": { "array": false, "object": false } } ],
-    "no-multiple-empty-lines": [ "error", { "max": 2, "maxEOF": 1 } ], 
-    "no-trailing-spaces": "warn", 
+    "no-multiple-empty-lines": [ "error", { "max": 2, "maxEOF": 1 } ],
+    "no-trailing-spaces": "warn",
     "quotes": [ "warn", "single", { "allowTemplateLiterals": true } ],
     "space-before-function-paren": [ "warn", { "anonymous": "never", "named": "never", "asyncArrow": "always" } ],
     "space-in-parens": [ "warn", "never" ],
