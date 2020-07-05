@@ -509,6 +509,21 @@ describe('Client class', () => {
     spy.mockRestore();
   });
 
+  test('prints log messages prefixed with subclass name', async () => {
+
+    class ServiceNameClient extends Client {}
+
+    const spy = jest.spyOn(console, 'log').mockImplementation();
+
+    const client = new ServiceNameClient('API_KEY', 'SECRET', { verbose: true });
+
+    client.log(`test`);
+
+    expect(spy).toHaveBeenCalledWith('ServiceNameClient', 'test');
+
+    spy.mockRestore();
+  });
+
   test('makes https requests when enabled', async () => {
 
     const port = 6006;

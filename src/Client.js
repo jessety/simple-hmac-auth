@@ -122,8 +122,7 @@ class Client {
       return;
     }
 
-    // eslint-disable-next-line no-console
-    console.log(`Client`, ...messages);
+    console.log(this.constructor.name, ...messages);
   }
 
   /**
