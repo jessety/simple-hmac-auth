@@ -14,7 +14,8 @@ HTTP authentication specification and Node library designed to make building API
 - [Additional Implementations](#additional-implementations)
   - [Koa Middleware](https://github.com/jessety/simple-hmac-auth-koa)
   - [Express Middleware](https://github.com/jessety/simple-hmac-auth-express)
-  - [iOS Client](https://github.com/jessety/simple-hmac-auth-ios/)
+  - [Swift Client](https://github.com/jessety/simple-hmac-auth-swift/)
+  - [Objective-C Client](https://github.com/jessety/simple-hmac-auth-objc/)
   - [PHP Client](https://github.com/jessety/simple-hmac-auth-php/)
 
 ## Specification
@@ -373,7 +374,8 @@ Middleware for Express and Koa that leverage the implementation in this client e
 
 - [Koa Middleware](https://github.com/jessety/simple-hmac-auth-koa)
 - [Express Middleware](https://github.com/jessety/simple-hmac-auth-express)
-- [iOS Client](https://github.com/jessety/simple-hmac-auth-ios/)
+- [Swift Client](https://github.com/jessety/simple-hmac-auth-swift/)
+- [Objective-C Client](https://github.com/jessety/simple-hmac-auth-objc/)
 - [PHP Client](https://github.com/jessety/simple-hmac-auth-php/)
 
 ## License
