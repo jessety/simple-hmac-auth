@@ -7,7 +7,7 @@
 
 'use strict';
 
-const SimpleHMACAuth = require('../../../src/index');
+const SimpleHMACAuth = require('../../../lib/index');
 
 class BearClient extends SimpleHMACAuth.Client {
 
@@ -30,7 +30,7 @@ class BearClient extends SimpleHMACAuth.Client {
   }
 
   detail(id, parameters, callback) {
-    return this.call('GET', '/bears/' + encodeURIComponent(id), undefined, parameters, callback);
+    return this.call('GET', `/bears/${encodeURIComponent(id)}`, undefined, parameters, callback);
   }
 
   query(parameters, callback) {
@@ -38,11 +38,11 @@ class BearClient extends SimpleHMACAuth.Client {
   }
 
   update(id, data, callback) {
-    return this.call('POST', '/bears/' + encodeURIComponent(id), data, undefined, callback);
+    return this.call('POST', `/bears/${encodeURIComponent(id)}`, data, undefined, callback);
   }
 
   delete(id, callback) {
-    return this.call('DELETE', '/bears/' + encodeURIComponent(id), undefined, undefined, callback);
+    return this.call('DELETE', `/bears/${encodeURIComponent(id)}`, undefined, undefined, callback);
   }
 }
 

@@ -4,12 +4,8 @@
 //  Created by Jesse Youngblood on 11/23/18 at 23:53
 //
 
-/* eslint no-console: off, no-unused-vars: off */
-
-'use strict';
-
-const http = require('http');
-const SimpleHMACAuth = require('../../lib/index');
+import http from 'http';
+import SimpleHMACAuth from '../../lib/index';
 
 const settings = {
   port: 8000,
@@ -27,7 +23,7 @@ auth.secretForKey = (apiKey, callback) => {
 
   if (settings.secretsForAPIKeys[apiKey] !== undefined) {
 
-    callback(null, settings.secretsForAPIKeys[apiKey]);
+    callback(undefined, settings.secretsForAPIKeys[apiKey]);
     return;
   }
 
@@ -73,6 +69,7 @@ const dataListenerRequestHandler = async (request, response) => {
 };
 
 // Validate immediately, and let the auth system listen for body data
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const immediateRequestHandler = async (request, response) => {
 
   console.log(`Processing new request:`, new Date());

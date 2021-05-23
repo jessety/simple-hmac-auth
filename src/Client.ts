@@ -4,16 +4,36 @@
 //  Created by Jesse T Youngblood on 3/23/16 at 10:42pm
 //
 
-'use strict';
+import http from 'http';
+import https from 'https';
 
-const http = require('http');
-const https = require('https');
+import { sign, algorithms } from './sign';
+import canonicalize from './canonicalize';
+import AuthError from './AuthError';
 
-const { sign, algorithms } = require('./sign');
-const canonicalize = require('./canonicalize');
-const AuthError = require('./AuthError');
+interface ClientSettings {
+  verbose?: boolean
+  timeout?: number
+  maxSockets?: number
+  host?: string
+  port?: number
+  ssl?: boolean,
+  algorithm?: string
+  headers?: {[key: string]: string}
+  options?: http.RequestOptions | https.RequestOptions
+}
+
+type ClientSettingsWithAuthentication = ClientSettings & { apiKey: string, secret: string };
+type ClientCallback = ((error?: Error, response?: string | unknown) => void);
+
+class ExtendedError extends Error {
+  [key: string]: string | undefined
+}
 
 class Client {
+
+  _settings: ClientSettingsWithAuthentication;
+  agent: http.Agent | https.Agent;
 
   /**
    * Server Interface
@@ -24,7 +44,7 @@ class Client {
    * @param {number}  [settings.timeout=7500]  How long until giving up on a request, in milliseconds
    * @param {number}  [settings.maxSockets=25] The maximum number of sockets to keep open to the platform at any given time
    */
-  constructor(apiKey, secret, settings) {
+  constructor(apiKey: string, secret?: string, settings?: Partial<ClientSettings>) {
 
     if (settings === undefined || settings === null) {
 
@@ -40,14 +60,16 @@ class Client {
       settings.verbose = false;
     }
 
-    this._settings = settings;
+    this._settings = settings as ClientSettingsWithAuthentication;
 
     if (apiKey === undefined || apiKey === null || apiKey === '' || typeof apiKey !== 'string') {
 
       throw new AuthError('Client created without an API key.');
     }
 
-    settings.apiKey = apiKey;
+    const validatedSettings: ClientSettingsWithAuthentication = settings as ClientSettingsWithAuthentication;
+
+    validatedSettings.apiKey = apiKey;
 
     if (secret === undefined || secret === null) {
 
@@ -60,48 +82,49 @@ class Client {
 
     } else {
 
-      settings.secret = secret;
+      validatedSettings.secret = secret;
     }
 
-    if (typeof settings.host !== 'string') {
-      settings.host = 'localhost';
+    if (typeof validatedSettings.host !== 'string') {
+      validatedSettings.host = 'localhost';
     }
 
-    if (typeof settings.ssl !== 'boolean') {
-      settings.ssl = false;
+    if (typeof validatedSettings.ssl !== 'boolean') {
+      validatedSettings.ssl = false;
     }
 
-    if (typeof settings.port !== 'number') {
+    if (typeof validatedSettings.port !== 'number') {
 
-      settings.port = 80;
+      validatedSettings.port = 80;
 
-      if (settings.ssl) {
-        settings.port = 443;
+      if (validatedSettings.ssl) {
+
+        validatedSettings.port = 443;
       }
     }
 
-    if (typeof settings.algorithm !== 'string') {
-      settings.algorithm = 'sha256';
+    if (typeof validatedSettings.algorithm !== 'string') {
+      validatedSettings.algorithm = 'sha256';
     }
 
-    if (!algorithms.includes(settings.algorithm)) {
+    if (!algorithms.includes(validatedSettings.algorithm)) {
       throw new Error(`Invalid HMAC algorithm: "${settings.algorithm}". The only supported algorithms are: "${algorithms.join('", "')}"`);
     }
 
-    if (typeof settings.timeout !== 'number') {
-      settings.timeout = 7500;
+    if (typeof validatedSettings.timeout !== 'number') {
+      validatedSettings.timeout = 7500;
     }
 
-    if (typeof settings.maxSockets !== 'number') {
-      settings.maxSockets = 250;
+    if (typeof validatedSettings.maxSockets !== 'number') {
+      validatedSettings.maxSockets = 250;
     }
 
-    if (typeof settings.headers !== 'object') {
-      settings.headers = {};
+    if (typeof validatedSettings.headers !== 'object') {
+      validatedSettings.headers = {};
     }
 
-    if (typeof settings.options !== 'object') {
-      settings.options = {};
+    if (typeof validatedSettings.options !== 'object') {
+      validatedSettings.options = {};
     }
 
     if (settings.ssl) {
@@ -110,19 +133,19 @@ class Client {
       this.agent = new http.Agent({ maxSockets: settings.maxSockets });
     }
 
-    this._settings = settings;
+    this._settings = validatedSettings;
   }
 
   /**
    * Log debug messages to the console, if 'verbose' is enabled.
    */
-  log(...messages) {
+  log(...out: unknown[]): void {
 
     if (this._settings.verbose !== true) {
       return;
     }
 
-    console.log(this.constructor.name, ...messages);
+    console.log(this.constructor.name, ...out);
   }
 
   /**
@@ -133,7 +156,7 @@ class Client {
    * @param   {object}   [data]   The message data
    * @param   {function} callback Callback executed when the request has succeeded or failed
    */
-  call(method, path, data, query, callback) {
+  call(method: string, path: string, data?: unknown, query?: {[key: string]: string}, callback?: ClientCallback): Promise<string | unknown> {
 
     const call = {
       method: method,
@@ -154,7 +177,13 @@ class Client {
    * @param {object}   [call.data]         The body of the request
    * @param {function} callback            Executes on completion
    */
-  request(call, callback) {
+  request(call: {
+    method?: string
+    path?: string
+    query?: {[key: string]: unknown}
+    headers?: {[key: string]: string}
+    data?: unknown
+  }, callback?: ClientCallback): Promise<string | unknown> {
 
     let { method, path, data, query, headers: callHeaders } = call;
     const { apiKey, secret, host, port, ssl, timeout, headers: settingsHeaders, options: settingsOptions } = this._settings;
@@ -162,14 +191,14 @@ class Client {
     return new Promise((resolve, reject) => {
 
       // Create one function to handle all errors
-      const fail = error => {
+      const fail = (error: Error) => {
 
         if (typeof callback === 'function') {
 
           callback(error);
 
           // Be sure to dispose of the callback so we don't end up calling it later
-          callback = null;
+          callback = undefined;
           return;
         }
 
@@ -182,14 +211,14 @@ class Client {
       // The query, the body, Adnan Syed, etc.
 
       if (method === undefined) {
-        const error = new Error('Request did not include HTTP method');
+        const error = new ExtendedError('Request did not include HTTP method');
         error.code = 'EBADINPUT';
         fail(error);
         return;
       }
 
       if (path === undefined) {
-        const error = new Error('Request did not include a path');
+        const error = new ExtendedError('Request did not include a path');
         error.code = 'EBADINPUT';
         fail(error);
         return;
@@ -201,7 +230,7 @@ class Client {
         query = {};
       }
 
-      let headers = {};
+      let headers: {[key:string]: string} = {};
 
       if (settingsHeaders && callHeaders) {
 
@@ -226,18 +255,18 @@ class Client {
 
       keys.forEach((key, index) => {
 
-        let value;
+        let value = query![key]!;
 
-        if ([ 'string', 'number', 'boolean' ].includes(typeof query[key])) {
+        if ([ 'string', 'number', 'boolean' ].includes(typeof value)) {
 
-          value = String(query[key]);
+          value = String(value);
 
         } else {
 
           try {
-            value = JSON.stringify(query[key]);
+            value = JSON.stringify(value);
           } catch (e) {
-            const error = new Error(`Could not serialize parameter ${key}: ${e.message}`);
+            const error = new ExtendedError(`Could not serialize parameter ${key}: ${e.message}`);
             error.code = 'EBADINPUT';
             error.details = e;
             fail(error);
@@ -245,10 +274,10 @@ class Client {
           }
         }
 
-        value = encodeURIComponent(value);
+        value = encodeURIComponent(value as string);
         key = encodeURIComponent(key);
 
-        queryString += key + '=' + value;
+        queryString += `${key}=${value}`;
 
         if (index !== (keys.length - 1)) {
           queryString += '&';
@@ -274,7 +303,7 @@ class Client {
 
           } catch (e) {
 
-            const error = new Error(`Could not serialize input data: ${e.message}`);
+            const error = new ExtendedError(`Could not serialize input data: ${e.message}`);
             error.code = 'EBADINPUT';
             error.details = e;
             fail(error);
@@ -286,11 +315,11 @@ class Client {
       let url = path;
 
       if (queryString.length > 0) {
-        url = url + '?' + queryString;
+        url = `${url}?${queryString}`;
       }
 
       if (bodyData !== undefined) {
-        headers['content-length'] = Buffer.byteLength(bodyData);
+        headers['content-length'] = String(Buffer.byteLength(bodyData));
       }
 
       if (secret !== undefined) {
@@ -299,13 +328,13 @@ class Client {
 
         const canonical = canonicalize(method, path, queryString, headers, bodyData);
 
-        const signature = sign(canonical, secret, algorithm);
+        const signature = sign(canonical, secret, algorithm!);
 
         // Populate the HTTP authorization header
         headers.signature = `simple-hmac-auth ${algorithm} ${signature}`;
       }
 
-      let options = {};
+      let options: http.RequestOptions = {};
 
       if (settingsOptions !== undefined) {
         options = { ...settingsOptions };
@@ -327,12 +356,12 @@ class Client {
 
       if (this._settings.verbose) {
 
-        let message = options.method + ' ' + options.host + ':' + options.port + options.path;
+        let message = `${options.method} ${options.host}:${options.port}${options.path}`;
 
-        message += '\n  Headers: ' + JSON.stringify(headers);
+        message += `\n  Headers: ${JSON.stringify(headers)}`;
 
         if (bodyData !== undefined && bodyData.length < 500) {
-          message += '\n  Data: ' + bodyData;
+          message += `\n  Data: ${bodyData}`;
         }
 
         this.log(message);
@@ -367,8 +396,10 @@ class Client {
           // If the response code isn't 200, throw an error
           if (response.statusCode !== 200) {
 
+            let error: AuthError | ExtendedError;
+
             // Construct a basic error object. If we can't fill in the details, default to the status code
-            let error = new Error(`Error ${response.statusCode}`);
+            error = new ExtendedError(`Error ${response.statusCode}`);
 
             // If this is HTTP 401, this is an authentication issue
             // Use an instance of the AuthError class instead of a generic Error
@@ -428,8 +459,8 @@ class Client {
 
           if (typeof callback === 'function') {
 
-            callback(undefined, object || responseData);
-            callback = null;
+            callback(undefined, object ?? responseData);
+            callback = undefined;
             return;
           }
 
@@ -439,16 +470,16 @@ class Client {
 
       request.on('error', error => {
 
-        request.abort();
+        request.destroy();
 
         fail(error);
       });
 
-      request.setTimeout(timeout, () => {
+      request.setTimeout(timeout!, () => {
 
-        request.abort();
+        request.destroy();
 
-        const error = new Error('The request has timed out.');
+        const error = new ExtendedError('The request has timed out.');
         error.code = 'ETIMEOUT';
         fail(error);
       });
@@ -463,4 +494,5 @@ class Client {
 
 }
 
+export default Client;
 module.exports = Client;

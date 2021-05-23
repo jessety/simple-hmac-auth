@@ -42,7 +42,7 @@ class ChickenClient extends SimpleHMACAuth.Client {
 
     return this.request({
       method: 'GET',
-      path: '/chickens/' + encodeURIComponent(id),
+      path: `/chickens/${encodeURIComponent(id)}`,
       query,
       headers: this.headers
     });
@@ -62,7 +62,7 @@ class ChickenClient extends SimpleHMACAuth.Client {
 
     return this.request({
       method: 'POST',
-      path: '/chickens/' + encodeURIComponent(id),
+      path: `/chickens/${encodeURIComponent(id)}`,
       data,
       headers: this.headers
     });
@@ -72,7 +72,7 @@ class ChickenClient extends SimpleHMACAuth.Client {
 
     return this.request({
       method: 'DELETE',
-      path: '/chickens/' + encodeURIComponent(id),
+      path: `/chickens/${encodeURIComponent(id)}`,
       headers: this.headers
     });
   }

@@ -4,11 +4,13 @@
 //  Created by Jesse T Youngblood on 7/23/19 at 15:05
 //
 
-'use strict';
-
 class AuthError extends Error {
 
-  constructor(message, code) {
+  public code?: string;
+
+  [key: string]: unknown
+
+  constructor(message: string, code?: string) {
 
     super(message);
 
@@ -19,7 +21,7 @@ class AuthError extends Error {
     }
   }
 
-  toJSON() {
+  private toJSON(): {[key: string]: unknown} {
 
     // Explicitly pull non-enumerable properties
     const { message } = this; // message, name, stack
@@ -31,4 +33,5 @@ class AuthError extends Error {
 
 Object.defineProperty(AuthError.prototype, 'name', { value: 'AuthError' });
 
+export default AuthError;
 module.exports = AuthError;

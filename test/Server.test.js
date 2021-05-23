@@ -1,8 +1,8 @@
 'use strict';
 
 const EventEmitter = require('events');
-const SimpleHMACAuth = require('../src/index.js');
-const { Server, AuthError } = SimpleHMACAuth;
+const SimpleHMACAuth = require('../');
+const { Server } = SimpleHMACAuth;
 
 describe('Server class', () => {
 
@@ -10,10 +10,10 @@ describe('Server class', () => {
 
     const server = new Server();
 
-    expect(server.settings.verbose).toBe(false);
-    expect(server.settings.secretForKeyTimeout).toBe(10000);
-    expect(server.settings.permittedTimestampSkew).toBe(60000);
-    expect(server.settings.bodySizeLimit).toBe(10);
+    expect(server.options.verbose).toBe(false);
+    expect(server.options.secretForKeyTimeout).toBe(10000);
+    expect(server.options.permittedTimestampSkew).toBe(60000);
+    expect(server.options.bodySizeLimit).toBe(10);
     expect(server.secretForKey).toBeUndefined();
   });
 
@@ -27,10 +27,10 @@ describe('Server class', () => {
       secretForKey: (apiKey) => 'secret'
     });
 
-    expect(server.settings.verbose).toBe(true);
-    expect(server.settings.secretForKeyTimeout).toBe(2500);
-    expect(server.settings.permittedTimestampSkew).toBe(5000);
-    expect(server.settings.bodySizeLimitBytes).toBe(2000000);
+    expect(server.options.verbose).toBe(true);
+    expect(server.options.secretForKeyTimeout).toBe(2500);
+    expect(server.options.permittedTimestampSkew).toBe(5000);
+    expect(server.options.bodySizeLimitBytes).toBe(2000000);
     expect(typeof server.secretForKey).toBe('function');
   });
 
@@ -46,10 +46,10 @@ describe('Server class', () => {
 
     const defaults = new Server();
 
-    expect(invalid.settings.verbose).toBe(defaults.settings.verbose);
-    expect(invalid.settings.secretForKeyTimeout).toBe(defaults.settings.secretForKeyTimeout);
-    expect(invalid.settings.permittedTimestampSkew).toBe(defaults.settings.permittedTimestampSkew);
-    expect(invalid.settings.bodySizeLimit).toBe(defaults.settings.bodySizeLimit);
+    expect(invalid.options.verbose).toBe(defaults.options.verbose);
+    expect(invalid.options.secretForKeyTimeout).toBe(defaults.options.secretForKeyTimeout);
+    expect(invalid.options.permittedTimestampSkew).toBe(defaults.options.permittedTimestampSkew);
+    expect(invalid.options.bodySizeLimit).toBe(defaults.options.bodySizeLimit);
     expect(invalid.secretForKey).toBeUndefined();
   });
 
@@ -127,7 +127,7 @@ describe('Server class', () => {
     server.secretForKey = (apiKey) => {
       throw new Error('Something went wrong');
     };
-    await expect(server._secretForKey(apiKey)).rejects.toThrow(AuthError);
+    await expect(server._secretForKey(apiKey)).rejects.toThrow(Error);
 
     // Throw if the secretForKey function implements a callback that returns an error
     server.secretForKey = (apiKey, callback) => {

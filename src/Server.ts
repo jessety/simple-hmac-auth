@@ -4,16 +4,40 @@
 //  Created by Jesse T Youngblood on 3/24/16 at 2:29pm
 //
 
-'use strict';
+import url from 'url';
+import http from 'http';
+import querystring from 'querystring';
 
-const url = require('url');
-const querystring = require('querystring');
+import { sign, algorithms } from './sign';
+import canonicalize from './canonicalize';
+import AuthError from './AuthError';
 
-const { sign, algorithms } = require('./sign');
-const canonicalize = require('./canonicalize');
-const AuthError = require('./AuthError');
+interface SimpleHMACAuthOptions {
+  verbose: boolean
+  secretForKeyTimeout: number
+  permittedTimestampSkew: number
+  bodySizeLimit: number
+  bodySizeLimitBytes: number
+  secretForKey: SecretForKeyFunction
+}
+
+type SecretKeyFunction = (key: string) => string | undefined;
+type SecretKeyCallbackFunction = (key: string) => Promise<string>;
+type SecretKeyPromiseFunction = (key: string, callback?: ((error: Error, secret: string) => void)) => void;
+
+// The SecretForKey function may return secrets directly, resolve a promise with the secret, or execute a callback
+type SecretForKeyFunction = SecretKeyFunction | SecretKeyCallbackFunction | SecretKeyPromiseFunction;
+
+class ExtendedError extends Error {
+  code?: string;
+  [key: string]: string | undefined
+}
 
 class SimpleHMACAuth {
+
+  options: SimpleHMACAuthOptions
+
+  secretForKey?: SecretForKeyFunction
 
   /**
    * Instantiate a new authentication object
@@ -24,39 +48,39 @@ class SimpleHMACAuth {
    * @param {number}   [settings.permittedTimestampSkew=60000] How far away from the current time to allow requests from
    * @param {number}   [settings.bodySizeLimit=10]             Default size limit for request body parsing, in megabytes
    */
-  constructor(settings) {
+  constructor(options?: Partial<SimpleHMACAuthOptions>) {
 
-    if (settings === undefined) {
-      settings = {};
+    if (options === undefined) {
+      options = {};
     }
 
-    if (typeof settings.verbose !== 'boolean') {
-      settings.verbose = false;
+    if (typeof options.verbose !== 'boolean') {
+      options.verbose = false;
     }
 
-    if (typeof settings.secretForKeyTimeout !== 'number') {
+    if (typeof options.secretForKeyTimeout !== 'number') {
 
-      settings.secretForKeyTimeout = 10 * 1000; // 10 seconds
+      options.secretForKeyTimeout = 10 * 1000; // 10 seconds
     }
 
-    if (typeof settings.permittedTimestampSkew !== 'number') {
+    if (typeof options.permittedTimestampSkew !== 'number') {
 
-      settings.permittedTimestampSkew = 60 * 1000; // 60 seconds
+      options.permittedTimestampSkew = 60 * 1000; // 60 seconds
     }
 
-    if (typeof settings.bodySizeLimit !== 'number') {
+    if (typeof options.bodySizeLimit !== 'number') {
 
-      settings.bodySizeLimit = 10;
+      options.bodySizeLimit = 10;
     }
 
-    settings.bodySizeLimitBytes = settings.bodySizeLimit * 1000000;
+    options.bodySizeLimitBytes = options.bodySizeLimit * 1000000;
 
-    if (typeof settings.secretForKey === 'function') {
+    if (typeof options.secretForKey === 'function') {
 
-      this.secretForKey = settings.secretForKey;
+      this.secretForKey = options.secretForKey;
     }
 
-    this.settings = settings;
+    this.options = options as SimpleHMACAuthOptions;
   }
 
   /**
@@ -65,9 +89,9 @@ class SimpleHMACAuth {
    * @param   {object}  data - Body data for the request
    * @returns {Promise} - Promise that resolves if the request authenticates, or rejects if it is not
    */
-  async authenticate(request, data) {
+  async authenticate(request: http.IncomingMessage, data: string | true): Promise<{apiKey: string, secret: string, signature: string}> {
     // Let's just assume the worst until we have reason to believe otherwise
-    request.authenticated = false;
+    (request as any).authenticated = false;
 
     // Make sure we have the full raw body of a request
 
@@ -78,7 +102,7 @@ class SimpleHMACAuth {
         throw error;
       });
 
-      request.body = data;
+      (request as any).body = data;
     }
 
     // Pull the API key from the request
@@ -89,7 +113,7 @@ class SimpleHMACAuth {
       throw new AuthError(`Missing API Key`, `API_KEY_MISSING`);
     }
 
-    request.apiKey = apiKey;
+    (request as any).apiKey = apiKey;
 
     let secret;
     try {
@@ -115,7 +139,7 @@ class SimpleHMACAuth {
       throw new AuthError(`Unrecognized API key: ${apiKey}`, `API_KEY_UNRECOGNIZED`);
     }
 
-    request.secret = secret;
+    (request as any).secret = secret;
 
     if (request.headers.signature === undefined) {
 
@@ -132,7 +156,7 @@ class SimpleHMACAuth {
     const now = new Date();
 
     // If this request was made over [60] seconds ago, ignore it
-    if (now - requestTime > this.settings.permittedTimestampSkew) {
+    if ((now.getTime() / 1000) - (requestTime.getTime() / 1000) > (this.options.permittedTimestampSkew / 1000)) {
 
       const error = new AuthError(`Timestamp is too old. Recieved: "${request.headers.date}" current time: "${now.toUTCString()}"`, `DATE_HEADER_INVALID`);
       error.time = now.toUTCString();
@@ -144,7 +168,7 @@ class SimpleHMACAuth {
     // We expect the signature header to contain a string like this:
     // 'simple-hmac-auth sha256 148c033512ad0c90e95ede5166089dcdf3b6c3b1b31da150e51484984300dcf2'
 
-    const signatureComponents = request.headers.signature.split(' ');
+    const signatureComponents = (request.headers.signature as string).split(' ');
 
     if (signatureComponents.length < 3) {
 
@@ -170,14 +194,22 @@ class SimpleHMACAuth {
       throw new AuthError(`Authorization header send invalid algorithm: "${algorithm}". The only supported hmac algorithms are: "${algorithms.join('", "')}"`, `HMAC_ALGORITHM_INVALID`);
     }
 
-    const requestURL = url.parse(request.url);
+    const requestURL = url.parse(request.url!);
 
-    const canonical = canonicalize(request.method, requestURL.pathname, requestURL.query, request.headers, data);
+    const headers: {[key: string] : string} = {};
+
+    for (const [key, value] of Object.entries(request.headers)) {
+      if (typeof value === 'string') {
+        headers[key] = value;
+      }
+    }
+
+    const canonical = canonicalize(request.method!, requestURL.pathname!, requestURL.query!, headers, data);
 
     const calculatedSignature = sign(canonical, secret, algorithm);
 
-    request.signature = calculatedSignature;
-    request.signatureExpected = calculatedSignature;
+    (request as any).signature = calculatedSignature;
+    (request as any).signatureExpected = calculatedSignature;
 
     if (signature !== calculatedSignature) {
 
@@ -185,7 +217,7 @@ class SimpleHMACAuth {
     }
 
     // It worked!
-    request.authenticated = true;
+    (request as any).authenticated = true;
 
     return { apiKey, secret, signature };
   }
@@ -196,7 +228,7 @@ class SimpleHMACAuth {
    * @param   {object} request - An HTTP request
    * @returns {string} API Key, if included
    */
-  _apiKeyForRequest(request) {
+  _apiKeyForRequest(request: http.IncomingMessage): string | undefined {
 
     let apiKey;
 
@@ -212,15 +244,15 @@ class SimpleHMACAuth {
 
     } else {
 
-      let query = {};
+      let query: {[apiKey: string]: string} = {};
 
-      if (request.query !== undefined) {
+      if ((request as any).query !== undefined) {
 
-        query = request.query;
+        query = (request as any).query;
 
       } else {
 
-        query = querystring.parse(url.parse(request.url).query);
+        query = querystring.parse(url.parse(request.url!).query!) as {[apiKey: string]: string};
       }
 
       if (query !== undefined && query.apiKey !== undefined) {
@@ -239,7 +271,7 @@ class SimpleHMACAuth {
    * @param   {string}  apiKey API key we received from the client
    * @returns {Promise} Promise that we got a secret for that API key from userland
    */
-  _secretForKey(apiKey) {
+  private _secretForKey(apiKey: string): Promise<string | undefined> {
 
     return new Promise((resolve, reject) => {
 
@@ -256,15 +288,15 @@ class SimpleHMACAuth {
       // This is to prevent situations where connections are left hanging when the client's secretForKey function has stalled
       const timer = setTimeout(() => {
 
-        reject(new AuthError(`Internal failure while attempting to locate secret for API key "${apiKey}": secretForKey has timed out after ${(this.settings.secretForKeyTimeout / 1000)} seconds`, `INTERNAL_ERROR_SECRET_TIMEOUT`));
+        reject(new AuthError(`Internal failure while attempting to locate secret for API key "${apiKey}": secretForKey has timed out after ${(this.options.secretForKeyTimeout / 1000)} seconds`, `INTERNAL_ERROR_SECRET_TIMEOUT`));
 
-      }, this.settings.secretForKeyTimeout);
+      }, this.options.secretForKeyTimeout);
 
 
       // Check if this function expects a callback
       if (this.secretForKey.length === 2) {
 
-        const callback = (error, secret) => {
+        const callback = (error?: Error, secret?: string) => {
 
           clearTimeout(timer);
 
@@ -298,9 +330,12 @@ class SimpleHMACAuth {
         return;
       }
 
+      // If we aren't waiting for a callback or a promise, resolve the timer right now
+      clearTimeout(timer);
+
       // If the secretForKey function does not accept a callback and the return value was not a promise,
       // --assume that the resulting value is the return
-      resolve(returnValue);
+      resolve(returnValue as string);
     });
   }
 
@@ -310,25 +345,25 @@ class SimpleHMACAuth {
    * @param   {object} request - An HTTP request
    * @returns {Promise} A promise that will resolve with the raw body of the request, or a blank string
    */
-  _rawBodyForRequest(request) {
+  private _rawBodyForRequest(request: http.IncomingMessage): Promise<string> {
 
     return new Promise((resolve, reject) => {
 
-      if (request.rawBody !== undefined && request.rawBody !== null) {
-        resolve(request.rawBody);
+      if ((request as any).rawBody !== undefined && (request as any).rawBody !== null) {
+        resolve((request as any).rawBody);
         return;
       }
 
-      const { bodySizeLimit, bodySizeLimitBytes } = this.settings;
+      const { bodySizeLimit, bodySizeLimitBytes } = this.options;
 
-      const chunks = [];
+      const chunks: Buffer[] = [];
 
-      request.on('data', chunk => {
+      request.on('data', (chunk: Buffer) => {
 
         chunks.push(chunk);
 
         if (Buffer.concat(chunks).byteLength >= bodySizeLimitBytes) {
-          const error = new Error(`Maximum file length (${bodySizeLimit}mb) exceeded.`);
+          const error = new ExtendedError(`Maximum file length (${bodySizeLimit}mb) exceeded.`);
           error.code = 'ETOOLONG';
           reject(error);
         }
@@ -341,4 +376,5 @@ class SimpleHMACAuth {
   }
 }
 
+export default SimpleHMACAuth;
 module.exports = SimpleHMACAuth;
