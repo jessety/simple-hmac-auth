@@ -442,7 +442,7 @@ describe('Client class', () => {
 
       const timedOutAfter = ((process.hrtime.bigint() - epoch) / BigInt(1000000));
 
-      expect(timedOutAfter).toBeLessThan(timeout + 50);
+      expect(timedOutAfter).toBeLessThan(timeout + 100);
       expect(timedOutAfter > timeout).toBe(true);
     }
 
