@@ -490,7 +490,7 @@ describe('Client class', () => {
 
   test('makes https requests when enabled', async () => {
 
-    const port = 6006;
+    const port = 6007;
     const server = http.createServer({ }, (request, response) => {
       response.writeHead(200);
       response.end('OK');
