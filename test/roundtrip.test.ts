@@ -1,7 +1,5 @@
-'use strict';
-
-const http = require('http');
-const SimpleHMACAuth = require('../src/index.js');
+import http from 'http';
+import SimpleHMACAuth from '../';
 
 test('roundtrip', async () => {
 
@@ -13,7 +11,7 @@ test('roundtrip', async () => {
 
   const auth = new SimpleHMACAuth.Server();
 
-  auth.secretForKey = async (requestAPIKey) => {
+  auth.secretForKey = async (requestAPIKey: string) => {
     if (requestAPIKey === apiKey) {
       return secret;
     }

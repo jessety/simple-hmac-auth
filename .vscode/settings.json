@@ -1,0 +1,13 @@
+
+{
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "search.exclude": {
+    "/lib": true,
+    "/coverage": true,
+    "/node_modules": true
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "eslint.validate": ["typescript"]
+}

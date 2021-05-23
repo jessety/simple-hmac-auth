@@ -1,53 +1,30 @@
 {
-  "extends": "eslint:recommended",
-  "parserOptions": {
-    "ecmaVersion": 2018
-  },
-  "env": {
-    "node": true,
-    "es6": true
+  "rules": {
+    "linebreak-style": ["warn", "unix"]
   },
   "overrides": [
     {
-      "files": ["**/*.test.js", "**/*.test.cjs"],
-      "env": { "jest": true }
+      "files": ["**/*.ts"],
+      "extends": [
+        "@jessety",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"
+      ],
+      "parser": "@typescript-eslint/parser",
+      "plugins": ["@typescript-eslint"],
+      "rules": {
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    },
+    {
+      "files": ["**/*.{js,cjs,mjs}"],
+      "extends": "@jessety"
+    },
+    {
+      "files": ["**/*.test.{ts,js,cjs,mjs}"],
+      "env": { "jest": true },
+      "rules": { "no-console": "warn" }
     }
-  ],
-  "rules": {
-    "no-console": "off",
-    "strict": [ "error", "global" ],
-    "no-unused-vars": [ "error", { "args": "none" } ],
-    "no-undef-init": "warn",
-    "no-await-in-loop": "error",
-    "no-bitwise": "warn",
-    "curly": "error",
-    "eqeqeq": "error",
-    "no-extend-native": "error",
-    "no-useless-escape": "error",
-    "semi": "warn",
-    "comma-dangle": "warn",
-    "template-curly-spacing": [ "warn", "never" ],
-    "one-var": [ "warn", "never" ],
-    "no-var": "warn",
-    "prefer-const": [ "warn", { "destructuring": "all" } ],
-    "operator-linebreak": [ "error", "before" ],
-    "quote-props": [ "warn", "as-needed" ],
-    "linebreak-style": [ "error", "unix" ],
-    "no-eval": "error",
-    "no-throw-literal": "error",
-    "require-atomic-updates": "off",
-
-    "indent": [ "warn", 2, { "SwitchCase": 1 } ],
-    "object-curly-spacing": [ "warn", "always", { "objectsInObjects": false, "arraysInObjects": false } ],
-    "prefer-destructuring": [ "warn", {
-      "VariableDeclarator": { "array": true, "object": true },
-      "AssignmentExpression": { "array": false, "object": false } } ],
-    "no-multiple-empty-lines": [ "error", { "max": 2, "maxEOF": 1 } ],
-    "no-trailing-spaces": "warn",
-    "quotes": [ "warn", "single", { "allowTemplateLiterals": true } ],
-    "space-before-function-paren": [ "warn", { "anonymous": "never", "named": "never", "asyncArrow": "always" } ],
-    "space-in-parens": [ "warn", "never" ],
-    "spaced-comment": [ "warn", "always" ],
-    "space-unary-ops": [ "warn", { "words": true, "nonwords": false } ]
-  }
+  ]
 }

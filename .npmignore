@@ -1,7 +1,0 @@
-examples/
-test/
-coverage/
-.github
-.eslintrc.json
-.eslintignore
-.editorconfig

@@ -22,16 +22,38 @@
     "url": "git+https://github.com/jessety/simple-hmac-auth.git"
   },
   "license": "MIT",
-  "author": "Jesse T Youngblood",
-  "main": "src/index.js",
+  "author": "Jesse Youngblood",
+  "type": "commonjs",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "directories": {
+    "lib": "lib",
+    "example": "examples",
+    "test": "test"
+  },
+  "files": [
+    "/lib"
+  ],
   "scripts": {
-    "lint": "eslint . && editorconfig-checker",
-    "test": "jest"
+    "build": "npm run clean && tsc",
+    "clean": "rimraf lib",
+    "format": "sort-package-json && eslint --fix .",
+    "lint": "eslint . && editorconfig-checker .",
+    "test": "npm run build && jest"
   },
   "dependencies": {},
   "devDependencies": {
-    "editorconfig-checker": "^3.0.4",
-    "eslint": "^6.8.0",
-    "jest": "^25.3.0"
+    "@jessety/eslint-config": "^1.0.6",
+    "@types/jest": "^26.0.23",
+    "@types/node": "^15.6.0",
+    "@typescript-eslint/eslint-plugin": "^4.24.0",
+    "@typescript-eslint/parser": "^4.24.0",
+    "editorconfig-checker": "^4.0.2",
+    "eslint": "^7.27.0",
+    "jest": "^26.5.3",
+    "rimraf": "^3.0.2",
+    "sort-package-json": "^1.50.0",
+    "ts-jest": "^26.5.6",
+    "typescript": "^4.2.4"
   }
 }

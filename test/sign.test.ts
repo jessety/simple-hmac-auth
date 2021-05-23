@@ -1,6 +1,4 @@
-'use strict';
-
-const { sign } = require('../src/sign.js');
+import { sign } from '../';
 
 describe('sign function', () => {
 

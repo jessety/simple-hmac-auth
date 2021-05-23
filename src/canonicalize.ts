@@ -4,12 +4,10 @@
 //  Created by Jesse T Youngblood on 3/24/16 at 21:19
 //
 
-'use strict';
-
-const crypto = require('crypto');
+import crypto from 'crypto';
 
 // Only sign these headers
-const headerWhitelist = [
+export const headerWhitelist = [
   'authorization',
   'date',
   'content-length',
@@ -25,7 +23,7 @@ const headerWhitelist = [
  * @param   {string} data        The body contents
  * @returns {string} A string representing the request
  */
-function canonicalize(method, uri, queryString, headers, data) {
+export function canonicalize(method: string, uri: string, queryString = '', headers: {[key: string]: string}, data?: string): string {
 
   // Hash the method, the path, aplhabetically sorted headers, alphabetically sorted GET parameters, and body data
 
@@ -40,7 +38,7 @@ function canonicalize(method, uri, queryString, headers, data) {
   }
 
   // Create a new list of headers, with the keys all lower case. Do this before sorting them, to make sure we don't bork the sort.
-  const cleanHeaders = {};
+  const cleanHeaders: {[key:string]: string} = {};
 
   for (let [ key, value ] of Object.entries(headers)) {
 
@@ -72,10 +70,10 @@ function canonicalize(method, uri, queryString, headers, data) {
 
     // Make sure our value is a string, so we can trim it
     if (typeof value !== 'string') {
-      value = '' + value;
+      value = `${value}`;
     }
 
-    headerString += key + ':' + value.trim();
+    headerString += `${key}:${value.trim()}`;
 
     if (index !== (headerKeys.length - 1)) {
       headerString += '\n';
@@ -103,13 +101,14 @@ function canonicalize(method, uri, queryString, headers, data) {
 
   let string = '';
 
-  string += method + '\n';
-  string += uri + '\n';
-  string += queryString + '\n';
-  string += headerString + '\n';
+  string += `${method}\n`;
+  string += `${uri}\n`;
+  string += `${queryString}\n`;
+  string += `${headerString}\n`;
   string += dataHash;
 
   return string;
 }
 
+export default canonicalize;
 module.exports = canonicalize;

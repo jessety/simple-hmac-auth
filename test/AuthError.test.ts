@@ -1,6 +1,4 @@
-'use strict';
-
-const AuthError = require('../src/AuthError.js');
+import { AuthError } from '../';
 
 describe('AuthError', () => {
 
@@ -16,6 +14,10 @@ describe('AuthError', () => {
   test('serializes "message" and "code" properties by default', () => {
 
     const error = new AuthError('An issue occurred', 'D12');
+
+    const representation = (error as any).toJSON();
+    expect(representation.message).toEqual('An issue occurred');
+    expect(representation.code).toEqual('D12');
 
     const roundtrip = JSON.parse(JSON.stringify(error));
 
