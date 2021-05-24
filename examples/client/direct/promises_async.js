@@ -9,7 +9,7 @@
 
 'use strict';
 
-const SimpleHMACAuth = require('../../../src/index');
+const SimpleHMACAuth = require('../../../lib/index');
 
 const client = new SimpleHMACAuth.Client('API_KEY', 'SECRET', {
   host: 'localhost',

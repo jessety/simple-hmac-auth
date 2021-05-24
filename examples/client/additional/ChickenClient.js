@@ -7,7 +7,7 @@
 
 'use strict';
 
-const SimpleHMACAuth = require('../../../src/index');
+const SimpleHMACAuth = require('../../../lib/index');
 
 class ChickenClient extends SimpleHMACAuth.Client {
 

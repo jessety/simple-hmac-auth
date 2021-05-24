@@ -5,7 +5,7 @@
 //
 
 import http from 'http';
-import SimpleHMACAuth from '../../lib/index';
+import SimpleHMACAuth from '../../';
 
 const settings = {
   port: 8000,
@@ -19,15 +19,12 @@ const settings = {
 const auth = new SimpleHMACAuth.Server({ verbose: true });
 
 // Required. Execute callback with either an error, or an API key.
-auth.secretForKey = (apiKey, callback) => {
+auth.secretForKey = async (apiKey) => {
 
   if (settings.secretsForAPIKeys[apiKey] !== undefined) {
 
-    callback(undefined, settings.secretsForAPIKeys[apiKey]);
-    return;
+    return settings.secretsForAPIKeys[apiKey];
   }
-
-  callback();
 };
 
 // Wait until the request has completed sending up data before validating
