@@ -21,12 +21,12 @@ interface SimpleHMACAuthOptions {
   secretForKey: SecretForKeyFunction
 }
 
-type SecretKeyFunction = (key: string) => string | undefined;
-type SecretKeyCallbackFunction = (key: string) => Promise<string>;
-type SecretKeyPromiseFunction = (key: string, callback?: ((error: Error, secret: string) => void)) => void;
-
 // The SecretForKey function may return secrets directly, resolve a promise with the secret, or execute a callback
-type SecretForKeyFunction = SecretKeyFunction | SecretKeyCallbackFunction | SecretKeyPromiseFunction;
+type SecretKeyReturnFunction = (key: string) => string | undefined;
+type SecretKeyPromiseFunction = (key: string) => Promise<string>;
+type SecretKeyCallbackFunction = (key: string, callback: ((error: Error) => void) | ((error: undefined, secret: string) => void)) => void;
+
+type SecretForKeyFunction = SecretKeyReturnFunction | SecretKeyPromiseFunction | SecretKeyCallbackFunction;
 
 class ExtendedError extends Error {
   code?: string;
@@ -312,7 +312,7 @@ class SimpleHMACAuth {
         return;
       }
 
-      const returnValue = this.secretForKey(apiKey);
+      const returnValue = (this.secretForKey as SecretKeyReturnFunction | SecretKeyPromiseFunction)(apiKey);
 
       if (returnValue instanceof Promise) {
 
