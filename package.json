@@ -39,7 +39,7 @@
     "clean": "rimraf lib",
     "format": "sort-package-json && eslint --fix .",
     "lint": "eslint . && editorconfig-checker .",
-    "test": "npm run build && jest"
+    "test": "jest"
   },
   "dependencies": {},
   "devDependencies": {

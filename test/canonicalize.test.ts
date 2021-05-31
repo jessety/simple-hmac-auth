@@ -1,4 +1,4 @@
-import { canonicalize } from '../';
+import { canonicalize } from '../src';
 
 describe('canonicalize function', () => {
 

@@ -1,7 +1,7 @@
 'use strict';
 
 const EventEmitter = require('events');
-const SimpleHMACAuth = require('../');
+const SimpleHMACAuth = require('../src');
 const { Server } = SimpleHMACAuth;
 
 describe('Server class', () => {

@@ -1,4 +1,4 @@
-import { AuthError } from '../';
+import { AuthError } from '../src';
 
 describe('AuthError', () => {
 

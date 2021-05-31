@@ -1,5 +1,5 @@
 import http from 'http';
-import { Client, AuthError } from '../';
+import { Client, AuthError } from '../src';
 
 describe('Client class', () => {
 

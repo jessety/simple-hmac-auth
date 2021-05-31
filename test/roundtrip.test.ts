@@ -1,5 +1,5 @@
 import http from 'http';
-import SimpleHMACAuth from '../';
+import { Server, Client } from '../src';
 
 test('roundtrip', async () => {
 
@@ -9,7 +9,7 @@ test('roundtrip', async () => {
 
   // Instantiate the server authentication component
 
-  const auth = new SimpleHMACAuth.Server();
+  const auth = new Server();
 
   auth.secretForKey = async (requestAPIKey: string) => {
     if (requestAPIKey === apiKey) {
@@ -39,7 +39,7 @@ test('roundtrip', async () => {
 
   // Create a client and make a request to the above server
 
-  const client = new SimpleHMACAuth.Client(apiKey, secret, {
+  const client = new Client(apiKey, secret, {
     host: 'localhost',
     port: port,
     ssl: false

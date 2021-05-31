@@ -1,6 +1,6 @@
 'use strict';
 
-const { canonicalize } = require('../');
+const { canonicalize } = require('../src');
 
 describe('canonicalize function', () => {
 

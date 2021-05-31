@@ -1,6 +1,6 @@
 'use strict';
 
-const { Client } = require('../');
+const { Client } = require('../src');
 
 describe('Client class', () => {
 

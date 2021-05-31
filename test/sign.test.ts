@@ -1,4 +1,4 @@
-import { sign } from '../';
+import { sign } from '../src';
 
 describe('sign function', () => {
 

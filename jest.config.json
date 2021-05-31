@@ -1,7 +1,7 @@
 {
   "preset": "ts-jest",
   "testEnvironment": "node",
-  "collectCoverageFrom": ["lib/**/*.js"],
+  "collectCoverageFrom": ["src/**/*.ts"],
   "testMatch": ["**/?(*.)+(test).{ts,js,mjs,cjs}?(x)"],
   "collectCoverage": true
 }
