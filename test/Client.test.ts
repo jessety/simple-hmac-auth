@@ -14,6 +14,7 @@ describe('Client class', () => {
     expect(client._settings.timeout).toBe(7500);
     expect(client._settings.maxSockets).toBe(250);
     expect(client.agent.maxSockets).toBe(250);
+    expect(client._settings.useDateHeader).toBe(false);
     expect(client._settings.headers).toEqual({});
     expect(client._settings.options).toEqual({});
     expect(client._settings.verbose).toBe(false);
@@ -27,6 +28,7 @@ describe('Client class', () => {
       algorithm: 'sha512',
       timeout: 30 * 1000,
       maxSockets: 500,
+      useDateHeader: true,
       headers: { 'x-custom-header': 'custom-value' },
       options: {
         timeout: 100
@@ -41,6 +43,7 @@ describe('Client class', () => {
     expect(client._settings.timeout).toBe(30000);
     expect(client._settings.maxSockets).toBe(500);
     expect(client.agent.maxSockets).toBe(500);
+    expect(client._settings.useDateHeader).toBe(true);
     expect(client._settings.headers).toEqual({ 'x-custom-header': 'custom-value' });
     expect(client._settings.options).toEqual({ timeout: 100 });
     expect(client._settings.verbose).toBe(true);
@@ -205,6 +208,47 @@ describe('Client class', () => {
     await expect(client.request({ method: 'GET', path: '/500' })).rejects.toThrow(Error);
 
     await expect(client.request({ method: 'GET', path: '/401' })).rejects.toThrow(AuthError);
+
+    server.close();
+  });
+
+  test('sends requests with the correct date header when specified', async () => {
+
+    const port = 6002;
+
+    const server = http.createServer((request, response) => {
+      response.write(JSON.stringify({
+        timestamp: request.headers.timestamp,
+        date: request.headers.date
+      }));
+      response.end();
+    });
+
+    const client = new Client('API_KEY', 'SECRET', {
+      ssl: false,
+      host: 'localhost',
+      port: port
+    });
+
+    server.listen(port);
+
+
+    // When not specified, assume `timestamp`
+    const one: any = await client.request({ method: 'GET', path: '/' });
+    expect(one.timestamp).toBeDefined();
+    expect(one.date).toBeUndefined();
+
+    // Respect the `date` preference when set to true
+    client._settings.useDateHeader = true;
+    const two: any = await client.request({ method: 'GET', path: '/' });
+    expect(two.timestamp).toBeUndefined();
+    expect(two.date).toBeDefined();
+
+    // Respect the `date` preference when set to false
+    client._settings.useDateHeader = false;
+    const three: any = await client.request({ method: 'GET', path: '/' });
+    expect(three.timestamp).toBeDefined();
+    expect(three.date).toBeUndefined();
 
     server.close();
   });

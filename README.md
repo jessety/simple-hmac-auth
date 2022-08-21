@@ -35,9 +35,9 @@ Request signatures are designed to be used in conjunction with HTTPS.
 
 ### Headers
 
-Each request requires three headers: `date`, `authorization` and `signature`. If the HTTP request contains a body, the `content-length` and `content-type` headers are also required.
+Each request requires three headers: `authorization`, `signature` and either `date` or `timestamp`. If the HTTP request contains a body, the `content-length` and `content-type` headers are also required.
 
-The `date` header is a standard [RFC-822 (updated in RFC-1123)](https://tools.ietf.org/html/rfc822#section-5) date, as per [RFC-7231](https://tools.ietf.org/html/rfc7231#section-7.1.1.2).
+The `date` header is a standard [RFC-822 (updated in RFC-1123)](https://tools.ietf.org/html/rfc822#section-5) date, as per [RFC-7231](https://tools.ietf.org/html/rfc7231#section-7.1.1.2). Because it [cannot be programmatically set inside of a browser](https://fetch.spec.whatwg.org/#forbidden-header-name), the `timestamp` header may be substituted instead.
 
 The `authorization` header is a standard as per [RFC-2617](https://tools.ietf.org/html/rfc2617#section-3.2.2) that, confusingly, is designed for authentication and not authorization. It should contain a string representation of the client's API key.
 

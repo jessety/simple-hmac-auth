@@ -321,7 +321,7 @@ describe('Server class', () => {
     }
   });
 
-  test('rejects authentication when date header is missing', async () => {
+  test('rejects authentication when both the date and timestamp headers are missing', async () => {
 
     expect.assertions(1);
 

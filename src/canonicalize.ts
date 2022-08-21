@@ -9,6 +9,7 @@ import crypto from 'crypto';
 // Only sign these headers
 export const headerWhitelist = [
   'authorization',
+  'timestamp',
   'date',
   'content-length',
   'content-type'
@@ -25,7 +26,7 @@ export const headerWhitelist = [
  */
 export function canonicalize(method: string, uri: string, queryString = '', headers: {[key: string]: string}, data?: string): string {
 
-  // Hash the method, the path, aplhabetically sorted headers, alphabetically sorted GET parameters, and body data
+  // Hash the method, the path, alphabetically sorted headers, alphabetically sorted GET parameters, and body data
 
   method = method.toUpperCase();
 
@@ -61,7 +62,7 @@ export function canonicalize(method: string, uri: string, queryString = '', head
   // Sort the header keys alphabetically
   headerKeys.sort();
 
-  // Create a string of all headers, arranged alphabetically, seperated by newlines
+  // Create a string of all headers, arranged alphabetically, separated by newlines
   let headerString = '';
 
   for (const [ index, key ] of headerKeys.entries()) {
@@ -87,7 +88,7 @@ export function canonicalize(method: string, uri: string, queryString = '', head
         method + \n
         URL + \n
         Alphabetically sorted query string with individually escaped keys and values + \n
-        Alphabetically sorted headers with lower case keys, seperated by newlines + \n
+        Alphabetically sorted headers with lower case keys, separated by newlines + \n
         Hash of body, or hash of blank string if body is empty
 
     Or:

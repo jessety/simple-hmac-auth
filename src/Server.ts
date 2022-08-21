@@ -146,19 +146,21 @@ class SimpleHMACAuth {
       throw new AuthError(`Missing signature. Please sign all incoming requests with the 'signature' header.`, `SIGNATURE_HEADER_MISSING`);
     }
 
-    if (request.headers.date === undefined) {
+    const timestamp = <string> request.headers.date ?? request.headers.timestamp;
 
-      throw new AuthError(`Missing timestamp. Please timestamp all incoming requests by including 'date' header.`, `DATE_HEADER_MISSING`);
+    if (timestamp === undefined) {
+
+      throw new AuthError(`Missing timestamp. Please timestamp all incoming requests by including either the 'date' or 'timestamp' header.`, `DATE_HEADER_MISSING`);
     }
 
     // First, confirm that the 'date' header is recent enough
-    const requestTime = new Date(request.headers.date);
+    const requestTime = new Date(timestamp);
     const now = new Date();
 
     // If this request was made over [60] seconds ago, ignore it
     if ((now.getTime() / 1000) - (requestTime.getTime() / 1000) > (this.options.permittedTimestampSkew / 1000)) {
 
-      const error = new AuthError(`Timestamp is too old. Recieved: "${request.headers.date}" current time: "${now.toUTCString()}"`, `DATE_HEADER_INVALID`);
+      const error = new AuthError(`Timestamp is too old. Received: "${request.headers.date}" current time: "${now.toUTCString()}"`, `DATE_HEADER_INVALID`);
       error.time = now.toUTCString();
 
       throw error;
