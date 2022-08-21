@@ -17,8 +17,9 @@ interface ClientSettings {
   maxSockets?: number
   host?: string
   port?: number
-  ssl?: boolean,
+  ssl?: boolean
   algorithm?: string
+  useDateHeader?: boolean
   headers?: {[key: string]: string}
   options?: http.RequestOptions | https.RequestOptions
 }
@@ -117,6 +118,10 @@ class Client {
 
     if (typeof validatedSettings.maxSockets !== 'number') {
       validatedSettings.maxSockets = 250;
+    }
+
+    if (typeof validatedSettings.useDateHeader !== 'boolean') {
+      validatedSettings.useDateHeader = false;
     }
 
     if (typeof validatedSettings.headers !== 'object') {
@@ -246,7 +251,12 @@ class Client {
       }
 
       headers.authorization = `api-key ${apiKey}`;
-      headers.date = new Date().toUTCString();
+
+      if (this._settings.useDateHeader === true) {
+        headers.date = new Date().toUTCString();
+      } else {
+        headers.timestamp = new Date().toUTCString();
+      }
 
       // Sort query keys alphabetically
       const keys = Object.keys(query).sort();

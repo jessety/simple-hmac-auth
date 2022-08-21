@@ -12,7 +12,7 @@ const http = require('http');
 const SimpleHMACAuth = require('../../');
 
 const settings = {
-  port: 8080,
+  port: 8000,
   secretsForAPIKeys: {
     API_KEY: 'SECRET',
     API_KEY_TWO: 'SECRET_TWO',
