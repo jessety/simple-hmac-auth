@@ -389,7 +389,7 @@ describe('Client class', () => {
 
     try {
       await client.request({ method: 'GET', path: '/child' });
-    } catch (error) {
+    } catch (error: any) {
       expect(error.message).toBe('An internal error has occurred');
       expect(error.code).toBe('D12');
       expect(error.error_name).toBe('error name');
@@ -397,7 +397,7 @@ describe('Client class', () => {
 
     try {
       await client.request({ method: 'GET', path: '/whole' });
-    } catch (error) {
+    } catch (error: any) {
       expect(error.message).toBe('An internal error has occurred');
       expect(error.code).toBe('D12');
       expect(error.error_name).toBe('error name');
@@ -405,13 +405,13 @@ describe('Client class', () => {
 
     try {
       await client.request({ method: 'GET', path: '/string' });
-    } catch (error) {
+    } catch (error: any) {
       expect(error.message).toBe('An internal error has occurred');
     }
 
     try {
       await client.request({ method: 'GET', path: '/jsonstring' });
-    } catch (error) {
+    } catch (error: any) {
       expect(error.message).toBe('An internal error has occurred');
     }
 
@@ -436,7 +436,7 @@ describe('Client class', () => {
 
     try {
       await client.request({ method: 'GET', path: '/' });
-    } catch (error) {
+    } catch (error: any) {
 
       expect(error.code).toBe('ETIMEOUT');
 

@@ -9,10 +9,10 @@
 'use strict';
 
 const http = require('http');
-const SimpleHMACAuth = require('../../src/index');
+const SimpleHMACAuth = require('../../');
 
 const settings = {
-  port: 8000,
+  port: 8080,
   secretsForAPIKeys: {
     API_KEY: 'SECRET',
     API_KEY_TWO: 'SECRET_TWO',

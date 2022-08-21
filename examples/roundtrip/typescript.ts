@@ -53,7 +53,7 @@ const dataListenerRequestHandler = async (request, response) => {
       response.writeHead(200);
       response.end('200');
 
-    } catch (error) {
+    } catch (error: any) {
 
       console.log(`  Authentication failed`, error);
 
@@ -83,7 +83,7 @@ const immediateRequestHandler = async (request, response) => {
     response.writeHead(200);
     response.end('200');
 
-  } catch (error) {
+  } catch (error: any) {
 
     console.log(`  Authentication failed`, error);
 

@@ -28,7 +28,7 @@ test('roundtrip', async () => {
       response.writeHead(200);
       response.end('OK');
 
-    } catch (error) {
+    } catch (error: any) {
 
       response.writeHead(401);
       response.end(JSON.stringify({ error }));
