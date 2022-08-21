@@ -120,7 +120,7 @@ class SimpleHMACAuth {
 
       secret = await this._secretForKey(apiKey);
 
-    } catch (error) {
+    } catch (error: any) {
 
       if (error === undefined) {
 

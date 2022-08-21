@@ -265,7 +265,7 @@ class Client {
 
           try {
             value = JSON.stringify(value);
-          } catch (e) {
+          } catch (e: any) {
             const error = new ExtendedError(`Could not serialize parameter ${key}: ${e.message}`);
             error.code = 'EBADINPUT';
             error.details = e;
@@ -301,7 +301,7 @@ class Client {
             bodyData = JSON.stringify(data);
             headers['content-type'] = 'application/json';
 
-          } catch (e) {
+          } catch (e: any) {
 
             const error = new ExtendedError(`Could not serialize input data: ${e.message}`);
             error.code = 'EBADINPUT';
